@@ -1,0 +1,126 @@
+{
+ "generated": "2026-11-07 16:43",
+ "source": "https://aiopen-serving.jntp-ax.or.kr/jntp-gpu/SV-d4074093",
+ "results": {
+  "6102_19_001b1163-c9da-4a16-ab1c-dbbca7a170f8": {
+   "mode": "classification",
+   "label": "폼스프레이불량",
+   "score": 0.999913215637207,
+   "defect": true
+  },
+  "6102_19_0ae3068a-1860-41a0-a2d8-dc0776c3c77e": {
+   "mode": "classification",
+   "label": "폼스프레이불량",
+   "score": 0.9999220371246338,
+   "defect": true
+  },
+  "6102_19_0d71248c-09e1-4a11-b4c9-817b220b4bd2": {
+   "mode": "classification",
+   "label": "폼스프레이불량",
+   "score": 0.9997488856315613,
+   "defect": true
+  },
+  "6102_19_1a609af3-f3d9-4409-b397-7d15f2e3b8e6": {
+   "mode": "classification",
+   "label": "폼스프레이불량",
+   "score": 0.9999215602874756,
+   "defect": true
+  },
+  "6102_19_1dabd242-3445-41ce-9110-4a465f3a4b4d": {
+   "mode": "classification",
+   "label": "폼스프레이불량",
+   "score": 0.9999212026596069,
+   "defect": true
+  },
+  "6102_19_2a9e41c7-9c76-4653-a7d6-1f1f48c6bd4f": {
+   "mode": "classification",
+   "label": "폼스프레이불량",
+   "score": 0.9998490810394287,
+   "defect": true
+  },
+  "6102_19_2d876374-cbe0-4aab-ba78-f59b00a2ae33": {
+   "mode": "classification",
+   "label": "폼스프레이불량",
+   "score": 0.9998388290405273,
+   "defect": true
+  },
+  "6102_19_3a4af7ab-3cf2-4fb5-83d8-c256f5348362": {
+   "mode": "classification",
+   "label": "폼스프레이불량",
+   "score": 0.999909520149231,
+   "defect": true
+  },
+  "6102_19_3d1bd980-8e67-4fae-b4c6-0d4e00c91de4": {
+   "mode": "classification",
+   "label": "폼스프레이불량",
+   "score": 0.9998886585235596,
+   "defect": true
+  },
+  "6102_19_3fcd5af5-1c7b-43cd-9293-0902df8aa5b8": {
+   "mode": "classification",
+   "label": "폼스프레이불량",
+   "score": 0.999893069267273,
+   "defect": true
+  },
+  "6101_19_003bf259-94f7-413a-a6cd-e8e7c6c291ee": {
+   "mode": "classification",
+   "label": "폼스프레이양품",
+   "score": 0.9997745156288147,
+   "defect": false
+  },
+  "6101_19_0b415260-4280-471d-a9a1-d8e079516f9f": {
+   "mode": "classification",
+   "label": "폼스프레이양품",
+   "score": 0.9997411370277405,
+   "defect": false
+  },
+  "6101_19_0e7081d4-bda4-40de-83c4-9f016a235495": {
+   "mode": "classification",
+   "label": "폼스프레이양품",
+   "score": 0.9982118606567383,
+   "defect": false
+  },
+  "6101_19_1b83f0c0-7573-4217-b6a2-cf8192fac08e": {
+   "mode": "classification",
+   "label": "폼스프레이양품",
+   "score": 0.99978107213974,
+   "defect": false
+  },
+  "6101_19_1e0e0239-37c2-44e5-9b4a-332f2554f686": {
+   "mode": "classification",
+   "label": "폼스프레이양품",
+   "score": 0.999788224697113,
+   "defect": false
+  },
+  "6101_19_2b2efd35-c420-4306-8d3a-5a1e23c3da3b": {
+   "mode": "classification",
+   "label": "폼스프레이양품",
+   "score": 0.9997085928916931,
+   "defect": false
+  },
+  "6101_19_2df0f934-0517-41fb-9ead-856db5f8d562": {
+   "mode": "classification",
+   "label": "폼스프레이양품",
+   "score": 0.9996607303619385,
+   "defect": false
+  },
+  "6101_19_3a438f05-fbce-49a3-bdcd-f23f240a7203": {
+   "mode": "classification",
+   "label": "폼스프레이양품",
+   "score": 0.9997530579566956,
+   "defect": false
+  },
+  "6101_19_3ce9a5d4-9222-49ff-8e94-754922d27857": {
+   "mode": "classification",
+   "label": "폼스프레이양품",
+   "score": 0.9996589422225952,
+   "defect": false
+  },
+  "6101_19_3fc22bd9-7da2-4407-a69b-70d1c1e21fb9": {
+   "mode": "classification",
+   "label": "폼스프레이양품",
+   "score": 0.9995860457420349,
+   "defect": false
+  }
+ }
+}

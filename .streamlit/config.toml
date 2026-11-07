@@ -1,0 +1,6 @@
+[theme]
+# Site palette (KRDS-style navy). Without this Streamlit widgets use its default red accent.
+primaryColor = "#1D3A6E"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F4F6F9"
+textColor = "#1E2A3B"

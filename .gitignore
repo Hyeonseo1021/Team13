@@ -1,0 +1,15 @@
+# secrets
+.streamlit/secrets.toml
+.env
+
+# python
+__pycache__/
+*.pyc
+
+# old backups
+app.before*.py
+index.before-*.html
+qa/backup-before-unify/
+
+# large duplicate of demo_cases/raw
+demo_cases/incoming/*.zip
