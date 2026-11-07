@@ -11,5 +11,8 @@ app.before*.py
 index.before-*.html
 qa/backup-before-unify/
 
-# large duplicate of demo_cases/raw
-demo_cases/incoming/*.zip
+# staging area for incoming data (full zips, unpacked originals); only demo_cases/raw is used by the app
+demo_cases/incoming/
+
+# accounts DB and reviewed photos (personal data)
+data/

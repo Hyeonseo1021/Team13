@@ -49,7 +49,12 @@ class InspectionTests(unittest.TestCase):
   cases=m.load_cases('classification')
   self.assertGreater(len(cases),0);self.assertTrue(any(c['defect'] for c in cases));self.assertTrue(any(not c['defect'] for c in cases))
   self.assertTrue(all((c['cls']=='폼스프레이불량')==c['defect'] for c in cases))
-  self.assertEqual(m.load_cases('detection'),[])  # foam-spray photos are classification-only
+  self.assertTrue(all(c['cls'].startswith('폼스프레이') for c in cases))  # foam-spray photos are classification-only
+ def test_detection_quiz_has_pipe_bolt_photos(self):
+  cases=m.load_cases('detection')  # demo_cases/raw/team13_pipe: bolts on pipes
+  self.assertTrue(any(c['defect'] for c in cases));self.assertTrue(any(not c['defect'] for c in cases))
+  self.assertTrue(all(c['cls'] in ('볼트체결불량','볼트체결양품') and (c['cls']=='볼트체결불량')==c['defect'] for c in cases))
+  self.assertEqual(len(m.pick_round(cases)),m.QUIZ_SIZE)
  def test_quiz_truth_prefers_label_quality(self):
   import tempfile,json,os
   with tempfile.TemporaryDirectory() as d:
@@ -80,6 +85,6 @@ class InspectionTests(unittest.TestCase):
   self.assertNotIn(rv.NO_DEFECT,rv.correction_choices('detection',{'label':'후보 없음','defect':False}))
  def test_review_log_csv(self):
   import review as rv
-  out=rv.log_csv([{'time':'10:00:00','file':'a.jpg','ai':'양품 · 표면양품','score':'99.0%','decision':'거절','mine':'탱크클리닝불량'}])
-  self.assertTrue(out.startswith('\ufeff검토 시각'));self.assertIn('탱크클리닝불량',out)
+  out=rv.log_csv([{'created':'2026-11-07 10:00:00','mode':'classification','file':'a.jpg','ai':'양품 · 표면양품','score':'99.0%','decision':'거절','mine':'탱크클리닝불량'}])
+  self.assertTrue(out.startswith('\ufeff검토 시각'));self.assertIn('탱크클리닝불량',out);self.assertIn('표면 상태 분류',out)
 if __name__=='__main__':unittest.main()

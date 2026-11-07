@@ -145,9 +145,19 @@ def run_row(label,disabled,key=None):
 def step(num,title):
     return f'<div class="step-head"><b>STEP {num}</b><h3>{title}</h3></div>'
 
+# Full format rules live in the AgentStream system prompt; this line only reinforces them per question.
+ANSWER_FORMAT = '핵심은 맨 위에 표로 정리하고, 판정·점수·개수·사진 이름은 이 검사 정보의 값만 그대로 쓰세요.'
+
+
+def model_mark(view, case):
+    """'맞음'/'틀림' for the model's verdict on a revealed case, so the chatbot never has to work it out."""
+    return '-' if not view else ('맞음' if view['defect'] == case['defect'] else '틀림')
+
+
 def chat_context(cfg, screen, **extra):
     """What the assistant chatbot is told about the learner's current screen (sent as <inspection_context>)."""
-    return {'검사 종류': f"{cfg['number']}. {cfg['title']}", '모델': cfg['model'], '판정 클래스': cfg['classes'], '화면': screen, **extra}
+    return {'검사 종류': f"{cfg['number']}. {cfg['title']}", '모델': cfg['model'], '판정 클래스': cfg['classes'], '화면': screen, **extra,
+            '답변 형식': ANSWER_FORMAT}
 
 
 def model_summary(mode, body):
@@ -169,8 +179,8 @@ def render(mode):
     fragment(workspace_header(mode,cfg,task))
     if task=='review':
         from review import render_review
-        render_review(mode,cfg)
-        publish_chat_context(chat_context(cfg,'AI 판정 검토'))
+        ctx=render_review(mode,cfg) or {}
+        publish_chat_context(chat_context(cfg,'AI 판정 검토 · '+ctx.pop('단계','진행 중'),**ctx))
         fragment('<div class="ws-foot">'+footer()+'</div>');return
     if cases:
         render_quiz(mode,cfg,cases)
@@ -246,7 +256,8 @@ def render_result(mode,cfg,image,sig):
         st.caption('기록은 현재 세션에서만 유지되며 서버 파일로 저장하지 않습니다.')
 
 # ---------------------------------------------------------------- defect-picking quiz (demo_cases)
-CASES_ROOT = Path(os.environ.get('T13_CASES') or Path(__file__).parent / 'demo_cases' / 'raw' / 'team13_samples')
+CASES_DIR = Path(__file__).parent / 'demo_cases' / 'raw'  # every sub-folder with a samples.csv is a case set
+CASES_ROOT = Path(os.environ['T13_CASES']) if os.environ.get('T13_CASES') else None  # optional single set (tests)
 SHOW_SCORE = 0.5  # detection/segmentation: candidates at/above this count as "found"
 LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
@@ -256,10 +267,22 @@ def is_defect_class(name):
     return '양품' not in name
 
 
+def case_roots():
+    if CASES_ROOT: return [CASES_ROOT]
+    return sorted(d for d in CASES_DIR.iterdir() if (d / 'samples.csv').is_file()) if CASES_DIR.is_dir() else []
+
+
 def load_cases(mode, root=None):
+    """Photos this inspection's model can judge, from one case set or (default) every set under demo_cases/raw/
+    (team13_samples: foam spray -> 1, team13_welding: welding -> 3). Classes decide the inspection."""
+    if root is None:
+        return [c for r in case_roots() for c in load_cases(mode, r)]
+    return _load_set(mode, Path(root))
+
+
+def _load_set(mode, root):
     """Read samples.csv (클래스명, 이미지 파일, 라벨 파일) and keep the photos this inspection's model can judge.
     Ground truth: the label JSON's attributes.quality ('불량품'/'양품'), else the class name."""
-    root = Path(root or CASES_ROOT)
     index = root / 'samples.csv'
     if not index.is_file(): return []
     cases = []
@@ -424,9 +447,13 @@ def render_quiz(mode, cfg, cases):
             st.session_state.pop(key, None); st.rerun()
         with chat:
             fragment('<button type="button" class="run-chat-btn" data-chat aria-controls="chat-panel" aria-label="학습 도우미 챗봇 열기"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4H3v14h5l4 4v-4h9ZM7 9h10M7 13h6"/></svg>챗봇</button>')
+        marks = [(e['name'], e['ok'], model_mark(results[c['id']].get('view'), c)) for e, c in zip(entries, order)]
+        listed = lambda keep: ', '.join(n for n, mine_ok, ai in marks if keep(mine_ok, ai)) or '없음'
         publish_chat_context(chat_context(cfg, '직접 판단 실습 · 결과 비교 (제출 후)', **{
-            '정답 공개': '예', '요약': {'사진 수': len(cases), '실제 불량': defects, '내 정답': mine, '모델 정답': f'{model_ok}/{len(judged)}' if judged else '검사 실패'},
+            '정답 공개': '예', '요약': {'사진 수': len(cases), '실제 불량': defects, '내 정답': mine, '모델 정답': f'{model_ok}/{len(judged)}' if judged else '검사 실패',
+                                    '내가 틀린 사진': listed(lambda m, a: not m), '모델이 맞힌 사진': listed(lambda m, a: a == '맞음'),
+                                    '모델이 틀린 사진': listed(lambda m, a: a == '틀림'), '둘 다 틀린 사진': listed(lambda m, a: not m and a == '틀림')},
             '사진별 결과': [{'사진': e['name'], '정답': e['truth'], '촬영 위치': c['place'] or None, '내 선택': e['mine'], '내 선택 정오': '맞음' if e['ok'] else '틀림',
-                          '모델 판정': e['ai']} for e, c in zip(entries, order)]}))
+                          '모델 판정': e['ai'], '모델 판정 정오': model_mark(results[c['id']].get('view'), c)} for e, c in zip(entries, order)]}))
     if state.pop('scroll', False):
         render_html('<span hidden></span>', "setTimeout(()=>document.querySelector('[data-testid=stMain]')?.scrollTo({top:0}),150)")

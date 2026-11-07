@@ -18,4 +18,6 @@ if get_script_run_ctx() is not None:  # executed as a page script (no st.App): j
 else:
     import streamlit as st
     from chat_api import routes
-    app = st.App(str(ROOT / 'main.py'), routes=routes(st.config.get_option('server.baseUrlPath')))
+    from auth_api import routes as auth_routes
+    base_path = st.config.get_option('server.baseUrlPath')
+    app = st.App(str(ROOT / 'main.py'), routes=routes(base_path) + auth_routes(base_path))
