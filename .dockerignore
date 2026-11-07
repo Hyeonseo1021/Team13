@@ -1,0 +1,16 @@
+.git
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+data
+demo_cases/incoming
+__pycache__
+**/__pycache__
+*.pyc
+*.log
+.venv
+venv
+qa
+app.before*.py
+index.before-*.html

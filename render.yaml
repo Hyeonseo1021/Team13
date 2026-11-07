@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: team13-lng-ni
+    runtime: docker
+    plan: free
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /_stcore/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: AGENTSTREAM_API_KEY
+        sync: false
+      - key: AGENTSTREAM_BASE_URL
+        value: https://api-gateway.jntp-ax.or.kr/agentstream
+      - key: AGENTSTREAM_WORKSPACE_ID
+        value: 9b219b9e-a9b3-4c92-a88f-c02951a1d4c5
+      - key: AGENTSTREAM_CHATBOT_ID
+        value: 183140a3-8fe2-4259-9df1-0befd12755f8
+      - key: T13_SESSION_SECRET
+        generateValue: true

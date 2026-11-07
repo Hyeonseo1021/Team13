@@ -1,5 +1,27 @@
 # team13 · LNG 탱크 품질검사 교육
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Hyeonseo1021/Team13)
+
+## Render 무료 배포
+
+현재 앱을 GPU 작업 서버와 별개의 Render 서버에서 실행합니다. `render.yaml`은 **Free** 웹서비스만 생성하며 유료 디스크·DB는 만들지 않습니다.
+
+1. 위 **Deploy to Render** 버튼으로 Render에 로그인하고 GitHub 저장소 접근을 허용합니다. 또는 Render의 **New → Blueprint**에서 이 저장소의 `main`을 선택합니다.
+2. 요금제가 **Free**인지 확인합니다. `AGENTSTREAM_API_KEY`에 기존 AgentStream API 키를 입력합니다. 키를 GitHub에 커밋하지 마세요. 키가 없으면 챗봇은 사용할 수 없지만 화면·예제 실습 배포는 가능합니다.
+3. **Deploy**를 누릅니다. 빌드·시작이 완료되면 서비스 화면의 `https://<서비스명>.onrender.com/` 주소를 엽니다. 기존 GPU 서버의 `/i/.../` 경로는 붙이지 않습니다.
+4. 홈 로고, 검사별 예제 사진, 회원가입·로그인, 이미지 검사, 챗봇을 확인합니다. 이후 `main`에 푸시하면 자동 배포됩니다.
+
+Python 3.12.3과 현재 환경의 패키지 버전을 `Dockerfile`·`requirements.txt`로 고정합니다. `demo_cases/raw/`의 예제 사진과 `assets/`는 이미지에 포함하고, 원본 업로드 임시 폴더 `demo_cases/incoming/`, 개인 데이터 `data/`, 비밀키는 제외합니다. 시작 스크립트는 Render의 `PORT`를 사용하고 기본 경로 `/`에서 실행합니다. 기존 서버의 실행 스크립트는 그대로 유지합니다.
+
+**무료 플랜의 한계**
+
+- 15분 동안 트래픽이 없으면 절전 상태가 되며, 다음 방문 시 재기동 대기 시간이 생깁니다. 무중단 상시 운영을 보장하는 구성은 아닙니다.
+- 계정·검토 기록·보관 사진은 로컬 `data/`에 임시 저장됩니다. 재시작·재배포·절전 시 사라질 수 있습니다. 기존 서버의 계정과 사진도 자동 이전되지 않습니다. 영구 보관하려면 외부 DB/파일 저장소 연동 또는 유료 디스크가 필요합니다.
+- 무료 메모리 제한 때문에 동시 접속이나 큰 사진 처리 중 종료될 수 있습니다. 예제 파일은 디스크에서 읽으므로 데이터 총용량이 곧 메모리 사용량은 아닙니다. 큰 업로드·동시 사용은 배포 후 별도 확인해야 합니다.
+- AI 검사는 외부 `aiopen-serving.jntp-ax.or.kr` API, 챗봇은 AgentStream API가 계속 제공되고 Render에서 접근 가능해야 합니다. 웹앱을 이전하는 것만으로 이 API들의 운영 기간이 연장되지는 않습니다.
+
+공식 안내: [Render 무료 플랜](https://render.com/docs/free), [Docker 배포](https://render.com/docs/docker).
+
 신입직원이 LNG 탱크 부품 사진을 보고 직접 양품/불량을 판정한 뒤, AI 검사 모델(분류 ViT · 탐지 EfficientDet · 분할 MaskDINO)의
 결과와 비교하며 배우는 Streamlit 웹앱입니다. 오른쪽 **LNG_NI** 채팅창은 AgentStream 챗봇에 연결되어 있습니다.
 
