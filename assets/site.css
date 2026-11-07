@@ -853,3 +853,14 @@ main[class^="ws-"] ~ .footer,.footer{padding:10px 0 8px}
 @media(max-height:820px){[class*="st-key-t13quizgrid"]:not([class*="st-key-t13quizgrid_rv"]) [data-testid="stImage"] img{height:clamp(90px,calc(100dvh - 584px),300px)}}
 @container t13 (max-width:990px) and (min-width:641px){[class*="st-key-t13quizgrid"]:not([class*="st-key-t13quizgrid_rv"]) [data-testid="stImage"] img{height:clamp(120px,calc(100dvh - 756px),360px)}}
 @container t13 (max-width:640px){[class*="st-key-t13quizgrid"]:not([class*="st-key-t13quizgrid_rv"]) [data-testid="stImage"] img{height:clamp(90px,calc((100dvh - 532px) / 2),220px)}}
+/* AI 판정 검토 box ends on the same line as the 직접 판단 실습 box (same height formula as the judge box, whose photos fill the screen) */
+@container t13 (min-width:991px){[class*="st-key-t13step1"]:has(.st-key-t13rvleft,.rv-login){min-height:clamp(402px,calc(100dvh - 390px),722px)}}
+@media(max-height:820px){@container t13 (min-width:991px){[class*="st-key-t13step1"]:has(.st-key-t13rvleft,.rv-login){min-height:clamp(326px,calc(100dvh - 348px),536px)}}}
+@container t13 (max-width:990px) and (min-width:641px){[class*="st-key-t13step1"]:has(.st-key-t13rvleft,.rv-login){min-height:clamp(402px,calc(100dvh - 474px),642px)}}
+[class*="st-key-t13step1"]:has(.st-key-t13rvleft) [data-testid="stLayoutWrapper"]:has(> [data-testid="stHorizontalBlock"] .st-key-t13rvleft){flex:1 1 auto;display:flex;flex-direction:column}
+[class*="st-key-t13step1"] [data-testid="stHorizontalBlock"]:has(.st-key-t13rvleft){flex:1 1 auto}
+[class*="st-key-t13step1"]:has(.rv-login){justify-content:center}
+/* keep 승인/거절 with the record button: the decision block takes the free space above it */
+[data-testid="stColumn"]:has(.st-key-t13runrow_review) > [data-testid="stVerticalBlock"] > [data-testid="stElementContainer"]:has([data-testid="stButtonGroup"]){margin-top:auto}
+[data-testid="stColumn"]:has(.st-key-t13runrow_review):has([data-testid="stButtonGroup"]) [data-testid="stLayoutWrapper"]:has(> .st-key-t13runrow_review){margin-top:0}
+@media(max-height:820px){[class*="st-key-t13step1"]:has([data-testid="stSelectbox"]) [class*="st-key-t13rvimg"] img{max-height:max(90px,calc(100dvh - 616px))!important}}

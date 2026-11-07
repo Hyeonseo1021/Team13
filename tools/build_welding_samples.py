@@ -105,7 +105,8 @@ def main():
     for cls in CLASSES:
         single = sorted((r for r in rows if json.loads(r['class_names']) == [cls]), key=lambda r: r['stem'])
         random.Random(f'{a.seed}:{cls}').shuffle(single)
-        have = {p.stem for p in (OUT / cls).glob('*.json')} if (OUT / cls).is_dir() else set()
+        # count only complete pairs: other tools may leave labels without photos in the class folder
+        have = {p.stem for p in (OUT / cls).glob('*.json') if any(q.suffix.lower() in ('.jpg', '.jpeg', '.png') for q in p.parent.glob(p.stem + '.*'))} if (OUT / cls).is_dir() else set()
         added = 0
         for r in single:
             if len(have) >= a.per_class:
