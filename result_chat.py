@@ -13,7 +13,7 @@ import streamlit as st
 MODEL = 'claude-opus-5-5'
 API_URL = 'https://api.anthropic.com'  # pinned: the host shell may export a different ANTHROPIC_BASE_URL
 
-SYSTEM = """당신은 LNG 탱크 품질검사를 배우는 신입직원을 돕는 'team13 학습 도우미'입니다.
+SYSTEM = """당신은 LNG 탱크 품질검사를 배우는 신입직원을 돕는 'LNG_NI'입니다.
 학습자는 사진을 보고 먼저 자신의 예상을 고른 뒤, AI 검사 모델(분류 ViT, 탐지 EfficientDet, 분할 MaskDINO)의 결과와 비교합니다.
 대화에 주어지는 [검사 결과] JSON이 유일한 사실 근거입니다. 그 밖의 수치나 판정을 지어내지 마세요.
 

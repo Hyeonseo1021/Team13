@@ -15,7 +15,7 @@ const actions={guide:()=>show('실습 이용 가이드',guide),chat:()=>{closeAl
 actions.topic=v=>topics[v]&&show(...topics[v]);
 actions.classes=v=>{const c=T13_CONTEXT.classes?.[v];if(!c)return;show(c.title+' · 판정 클래스',c.model+' 모델이 구분하는 '+c.classes.length+'개 클래스입니다.\n\n'+c.classes.map((x,i)=>(i+1)+'. '+x).join('\n')+'\n\n해당 검사 페이지에서 사진을 올려 직접 확인해 보세요.')};
 actions.company=()=>show('기업교육 안내','기업 신입직원이 LNG 탱크 검사 대상을 이해하고, 직접 관찰한 결과와 AI 분석을 비교하는 학습 공간입니다.\n\n기업별 계정 인증·교육 배정·수료 관리는 추후 연동할 예정입니다. 현재 기업 계정은 시연용이며, 검사 실습은 연결된 실제 API를 사용합니다.');
-actions.privacy=()=>show('개인정보 및 데이터 안내','검사 실행 시 선택한 사진이 지정된 LNG 탱크 검사 API로 전송됩니다. 검사 실습에서 올린 사진과 결과는 이 사이트에 저장하지 않습니다.\n\n학습 도우미 챗봇은 질문과 현재 화면의 검사 정보(검사 종류·내 예상·모델 결과, 공개된 정답 라벨)를 우리 서버를 거쳐 AgentStream 챗봇 서버로 보냅니다. 사진 파일은 챗봇에 보내지 않습니다. 질문과 답변은 챗봇 서버에 대화 기록으로 저장될 수 있습니다. 브라우저 탭에 보관된 대화는 새 대화 버튼으로 지울 수 있습니다. 로그인하면 이름과 AI 판정 검토 기록이 이 서버에 저장됩니다. 비밀번호는 복원할 수 없는 형태(해시)로만 저장합니다.\n\nAI 판정 검토에서 사진 보관에 동의하면, 검토한 사진의 축소본(긴 변 1600px, 위치정보 등 메타데이터 제거)을 검토일로부터 90일간 이 서버에 보관합니다. 공개 주소로 열리지 않으며 로그인한 본인만 "내 검토 기록"에서 볼 수 있고, 같은 화면에서 언제든 모두 지울 수 있습니다. 90일이 지나면 사진은 자동 삭제되고 검토 기록(텍스트)만 남습니다.');
+actions.privacy=()=>show('개인정보 및 데이터 안내','검사 실행 시 선택한 사진이 지정된 LNG 탱크 검사 API로 전송됩니다. 검사 실습에서 올린 사진과 결과는 이 사이트에 저장하지 않습니다.\n\nLNG_NI 챗봇은 질문과 현재 화면의 검사 정보(검사 종류·내 예상·모델 결과, 공개된 정답 라벨)를 우리 서버를 거쳐 AgentStream 챗봇 서버로 보냅니다. 사진 파일은 챗봇에 보내지 않습니다. 질문과 답변은 챗봇 서버에 대화 기록으로 저장될 수 있습니다. 브라우저 탭에 보관된 대화는 새 대화 버튼으로 지울 수 있습니다. 로그인하면 이름과 AI 판정 검토 기록이 이 서버에 저장됩니다. 비밀번호는 복원할 수 없는 형태(해시)로만 저장합니다.\n\nAI 판정 검토에서 사진 보관에 동의하면, 검토한 사진의 축소본(긴 변 1600px, 위치정보 등 메타데이터 제거)을 검토일로부터 90일간 이 서버에 보관합니다. 공개 주소로 열리지 않으며 로그인한 본인만 "내 검토 기록"에서 볼 수 있고, 같은 화면에서 언제든 모두 지울 수 있습니다. 90일이 지나면 사진은 자동 삭제되고 검토 기록(텍스트)만 남습니다.');
 actions.account=()=>{show('기업 계정 체험','');$('#site-dialog-copy').innerHTML='<p>실제 인증이 없는 시연 계정입니다. 회사 비밀번호를 입력하지 않습니다.</p><label for="demo-company">소속 기업 (예시)</label><select id="demo-company"><option>제조기업 A</option><option>기술기업 B</option><option>서비스기업 C</option></select><button type="button" class="primary-ui" id="demo-login">시연 계정으로 확인</button>';$('#demo-login').onclick=()=>{const company=$('#demo-company').value;show(company+' · 시연 계정','홈의 1·2·3 버튼으로 검사 교육을 시작할 수 있습니다.\n\n실제 기업 계정·배정 과정·수료 정보는 연결되어 있지 않습니다.')}};
 actions.allmenu=()=>{const m=document.getElementById('t13-allmenu');if(m&&!m.open){m.showModal();m.querySelector('.allmenu-close')?.focus()}};
 actions.menu=actions.allmenu;
@@ -53,7 +53,7 @@ if(!window.T13_DELEGATED){window.T13_DELEGATED=true;document.addEventListener('c
 const panel=$('#chat-panel'),launcher=$('#chat-launcher'),input=$('#chat-input'),log=$('#chat-log'),sendBtn=$('#chat-send');
 const STORE_KEY='team13.learning-chat.v2',API=T13_CONTEXT.chatApi||'api/t13';
 const PLOTLY_SRC='https://cdnjs.cloudflare.com/ajax/libs/plotly.js/3.0.1/plotly.min.js';
-const GREETING='안녕하세요! team13 학습 도우미입니다.\n\n검사 결과를 보며 궁금한 점, 판정 기준, 관찰 포인트를 물어보세요. 답변은 AI가 생성하며, 지금 화면의 검사 정보(검사 종류·내 예상·모델 결과, 공개된 정답)를 함께 참고합니다.';
+const GREETING='**안녕하세요! LNG_NI 입니다.**\n\n검사 결과를 보며 궁금한 점, 판정 기준, 관찰 포인트를 물어보세요. 답변은 AI가 생성하며, 지금 화면의 검사 정보(검사 종류·내 예상·모델 결과, 공개된 정답)를 함께 참고합니다.';
 const ICON_SEND='<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V4m-7 7 7-7 7 7"/></svg>',ICON_STOP='<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>';
 class ChatError extends Error{}
 const S=window.T13_CHAT||(window.T13_CHAT={messages:null,conv:null,busy:null,open:false,view:null});
@@ -61,12 +61,14 @@ if(!S.messages){S.messages=[];
   try{const saved=JSON.parse(sessionStorage.getItem(STORE_KEY)||'{}');
     if(Array.isArray(saved.messages))S.messages=saved.messages.filter(m=>m&&['user','assistant'].includes(m.role)&&typeof m.text==='string').slice(-40);
     if(typeof saved.conv==='string')S.conv=saved.conv;S.open=saved.open===true}catch{}
-  S.messages.forEach(m=>{if(m.state==='streaming'){m.state='failed';m.error='페이지를 다시 불러와 답변 수신이 끊겼습니다.'}})}
+  S.messages.forEach(m=>{if(m.kind==='static')m.text=GREETING;if(m.state==='streaming'){m.state='failed';m.error='페이지를 다시 불러와 답변 수신이 끊겼습니다.'}})}
 function persist(){try{sessionStorage.setItem(STORE_KEY,JSON.stringify({conv:S.conv,open:S.open,messages:S.messages.slice(-40).map(m=>{
   if(!m.charts?.length||JSON.stringify(m.charts).length<300000)return m;return {...m,charts:[],chartsDropped:m.charts.length}})}))}catch{}}
 // Answers use light markdown: **bold** and pipe tables (header row + |---| line) are rendered, built as DOM nodes (never innerHTML).
 // While a table streams in, its header shows as plain text until the separator line arrives.
-function fillInline(node,text){String(text).split(/(\*\*[^*\n]+\*\*)/).forEach(part=>{if(/^\*\*[^*\n]+\*\*$/.test(part)){const b=document.createElement('strong');b.textContent=part.slice(2,-2);node.append(b)}else if(part)node.append(document.createTextNode(part))})}
+// The chatbot name LNG_NI is always shown in italics.
+function fillBrand(node,text){String(text).split(/(LNG_NI)/).forEach(p=>{if(p==='LNG_NI'){const i=document.createElement('i');i.className='t13-brand';i.textContent=p;node.append(i)}else if(p)node.append(document.createTextNode(p))})}
+function fillInline(node,text){String(text).split(/(\*\*[^*\n]+\*\*)/).forEach(part=>{if(/^\*\*[^*\n]+\*\*$/.test(part)){const b=document.createElement('strong');fillBrand(b,part.slice(2,-2));node.append(b)}else if(part)fillBrand(node,part)})}
 const isTableSep=l=>l.includes('|')&&l.includes('-')&&/^[\s|:-]+$/.test(l);
 function tableCells(l){let s=l.trim();if(s.startsWith('|'))s=s.slice(1);if(s.endsWith('|'))s=s.slice(0,-1);return s.split('|').map(c=>c.trim())}
 function fillRich(node,text){node.replaceChildren();const lines=String(text).split('\n');let buf=[];
@@ -132,7 +134,7 @@ function statusNode(m){
   const p=el('p','chat-status',txt);p.dataset.state=m.state||'done';return p}
 function renderMessage(m){
   const item=el('div','chat-message'+(m.role==='user'?' user':''));
-  item.append(el('p','chat-speaker',m.role==='user'?'나':m.kind==='static'?'team13 학습 도우미 · 기본 안내':'team13 학습 도우미 · AI 답변'));
+  {const sp=el('p','chat-speaker');fillBrand(sp,m.role==='user'?'나':m.kind==='static'?'LNG_NI · 기본 안내':'LNG_NI · AI 답변');item.append(sp)}
   const bubble=el('div','chat-bubble'+(m.kind==='static'?' is-static':''));fillAnswer(bubble,m);if(m.role==='assistant'&&m.kind!=='static'&&!m.text)bubble.classList.add('is-empty');item.append(bubble);
   if(m.role==='assistant'&&m.kind!=='static'){
     if(m.charts?.length){const box=el('div','chat-charts');m.charts.forEach((f,i)=>{const fig=el('figure','chat-chart');if(f.title)fig.append(el('figcaption','',f.title));

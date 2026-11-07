@@ -1,7 +1,7 @@
 # team13 · LNG 탱크 품질검사 교육
 
 신입직원이 LNG 탱크 부품 사진을 보고 직접 양품/불량을 판정한 뒤, AI 검사 모델(분류 ViT · 탐지 EfficientDet · 분할 MaskDINO)의
-결과와 비교하며 배우는 Streamlit 웹앱입니다. 오른쪽 **학습 도우미** 채팅창은 AgentStream 챗봇에 연결되어 있습니다.
+결과와 비교하며 배우는 Streamlit 웹앱입니다. 오른쪽 **LNG_NI** 채팅창은 AgentStream 챗봇에 연결되어 있습니다.
 
 ## 실행
 
@@ -27,7 +27,7 @@ streamlit run app.py --server.baseUrlPath <프록시 경로>
 `.streamlit/secrets.toml`과 `.env`는 `.gitignore`로 Git에서 제외됩니다. Streamlit은 `secrets.toml`의 최상위 값을
 환경변수로도 노출하므로 두 곳에 같은 이름을 넣으면 `secrets.toml` 값이 쓰입니다.
 
-## 학습 도우미 챗봇 연동 구조
+## LNG_NI 챗봇 연동 구조
 
 ```
 브라우저 (assets/site.js)

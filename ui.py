@@ -37,7 +37,7 @@ MENU=[
    ('실습 이용 가이드','검사 선택부터 기록 확인까지','href','?page=guide'),
    ('사진 준비 방법','형식·크기·촬영 대상 확인','href','?page=guide&topic=photo'),
    ('결과 해석 방법','점수·사각형·마스크 읽는 법','href','?page=guide&topic=result'),
-   ('학습 도우미 챗봇','궁금한 점 바로 묻기','chat','')]),
+   ('LNG_NI 챗봇','궁금한 점 바로 묻기','chat','')]),
  ('classes','판정 클래스','검사별로 모델이 구분하는 판정 종류를 확인합니다.',[
    ('표면 상태 분류 클래스','4개 클래스','href','?page=classes&type=classification'),
    ('볼트·케이블 탐지 클래스','4개 클래스','href','?page=classes&type=detection'),
@@ -48,10 +48,14 @@ MENU=[
    ('로그인 / 회원가입','검토 기록 저장','href','?page=login'),
    ('개인정보 및 데이터 안내','사진·대화 처리 방식','privacy','')])]
 
+def brand(text):
+    """Show the chatbot name LNG_NI in italics wherever it appears in visible HTML."""
+    return text.replace('LNG_NI','<i class="t13-brand">LNG_NI</i>')
+
 def menu_link(label,sub,kind,value,cls=''):
     sub_html=f'<small>{sub}</small>' if sub else ''
-    if kind=='href':return f'<a class="{cls}" href="{value}"><span>{label}</span>{sub_html}</a>'
-    return f'<button type="button" class="{cls}" data-{kind}="{value}"><span>{label}</span>{sub_html}</button>'
+    if kind=='href':return f'<a class="{cls}" href="{value}"><span>{brand(label)}</span>{sub_html}</a>'
+    return f'<button type="button" class="{cls}" data-{kind}="{value}"><span>{brand(label)}</span>{sub_html}</button>'
 
 def menu(no_chat=False):
     """MENU, minus the assistant entries on pages without the assistant (home)."""
@@ -125,7 +129,7 @@ def class_lists():
     return {k:{'title':f"{c['number']}. {c['title']}",'model':c['model'],'classes':c['classes']} for k,c in MODES.items()}
 
 def chat_markup(no_chat=False):
-    return '''<div class="t13 t13-chat-root'''+(' no-chat' if no_chat else '')+'''" id="t13-chat-root"><button class="chat-launcher" id="chat-launcher" aria-controls="chat-panel" aria-expanded="false" aria-label="학습 도우미 대화창 열기">'''+icon()+'''<span class="chat-launcher-label">학습 도우미</span></button><aside class="chat-panel" id="chat-panel" role="dialog" aria-modal="false" aria-labelledby="chat-title" hidden><div class="chat-head"><span class="chat-avatar">'''+icon()+'''</span><div><h2 id="chat-title">team13 학습 도우미</h2><p id="chat-context-label">검사 선택부터 결과 이해까지</p></div><div class="chat-actions"><button id="chat-reset" aria-label="새 대화 시작">↻</button><button id="chat-close" aria-label="대화창 닫기">×</button></div></div><p class="chat-disclaimer">AI 답변은 틀릴 수 있습니다 · 실제 판정은 검사 기준과 담당자 검토가 필요합니다</p><div class="chat-log" id="chat-log" role="log" aria-live="polite" aria-relevant="additions" aria-label="대화 내역" tabindex="0"></div><div class="chat-bottom"><div class="chat-prompts"><button data-prompt="검사 종류를 알려주세요">검사 선택</button><button data-prompt="사진을 어떻게 준비하나요?">사진 준비</button><button data-prompt="검사 결과를 어떻게 이해하나요?">결과 이해</button></div><form class="chat-compose" id="chat-form"><label class="sr-only" for="chat-input">질문 입력</label><textarea id="chat-input" rows="2" maxlength="1000" placeholder="궁금한 내용을 물어보세요"></textarea><button id="chat-send" type="submit" aria-label="메시지 보내기" disabled>'''+icon('arrow')+'''</button></form><p class="chat-hint">Enter 전송 · Shift+Enter 줄바꿈 · 질문과 답변은 챗봇 서버에 기록될 수 있습니다.</p></div></aside><dialog id="site-dialog" aria-labelledby="site-dialog-title"><div class="dialog-top"><h2 id="site-dialog-title"></h2><button id="dialog-close" aria-label="닫기">×</button></div><div class="dialog-copy" id="site-dialog-copy"></div></dialog></div>'''
+    return '''<div class="t13 t13-chat-root'''+(' no-chat' if no_chat else '')+'''" id="t13-chat-root"><button class="chat-launcher" id="chat-launcher" aria-controls="chat-panel" aria-expanded="false" aria-label="LNG_NI 대화창 열기">'''+icon()+'''<span class="chat-launcher-label"><i class="t13-brand">LNG_NI</i></span></button><aside class="chat-panel" id="chat-panel" role="dialog" aria-modal="false" aria-labelledby="chat-title" hidden><div class="chat-head"><span class="chat-avatar">'''+icon()+'''</span><div><h2 id="chat-title"><i class="t13-brand">LNG_NI</i></h2><p id="chat-context-label">검사 선택부터 결과 이해까지</p></div><div class="chat-actions"><button id="chat-reset" aria-label="새 대화 시작">↻</button><button id="chat-close" aria-label="대화창 닫기">×</button></div></div><p class="chat-disclaimer">AI 답변은 틀릴 수 있습니다 · 실제 판정은 검사 기준과 담당자 검토가 필요합니다</p><div class="chat-log" id="chat-log" role="log" aria-live="polite" aria-relevant="additions" aria-label="대화 내역" tabindex="0"></div><div class="chat-bottom"><div class="chat-prompts"><button data-prompt="검사 종류를 알려주세요">검사 선택</button><button data-prompt="사진을 어떻게 준비하나요?">사진 준비</button><button data-prompt="검사 결과를 어떻게 이해하나요?">결과 이해</button></div><form class="chat-compose" id="chat-form"><label class="sr-only" for="chat-input">질문 입력</label><textarea id="chat-input" rows="2" maxlength="1000" placeholder="궁금한 내용을 물어보세요"></textarea><button id="chat-send" type="submit" aria-label="메시지 보내기" disabled>'''+icon('arrow')+'''</button></form></div></aside><dialog id="site-dialog" aria-labelledby="site-dialog-title"><div class="dialog-top"><h2 id="site-dialog-title"></h2><button id="dialog-close" aria-label="닫기">×</button></div><div class="dialog-copy" id="site-dialog-copy"></div></dialog></div>'''
 
 def footer():
     return '<footer class="footer"><strong>'+wordmark('footer-logo')+'</strong><p>© 2026 team13 · LNG 탱크 품질검사 신입교육</p><div class="footer-links"><button type="button" data-privacy="">개인정보 및 데이터 안내</button><button type="button" data-company="">기업교육 문의</button><a href="?page=guide">이용 가이드</a></div></footer>'

@@ -864,3 +864,6 @@ main[class^="ws-"] ~ .footer,.footer{padding:10px 0 8px}
 [data-testid="stColumn"]:has(.st-key-t13runrow_review) > [data-testid="stVerticalBlock"] > [data-testid="stElementContainer"]:has([data-testid="stButtonGroup"]){margin-top:auto}
 [data-testid="stColumn"]:has(.st-key-t13runrow_review):has([data-testid="stButtonGroup"]) [data-testid="stLayoutWrapper"]:has(> .st-key-t13runrow_review){margin-top:0}
 @media(max-height:820px){[class*="st-key-t13step1"]:has([data-testid="stSelectbox"]) [class*="st-key-t13rvimg"] img{max-height:max(90px,calc(100dvh - 616px))!important}}
+
+.t13-brand{font-style:italic}
+#hero-title .t13-brand{color:#C2410C}

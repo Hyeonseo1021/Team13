@@ -139,7 +139,7 @@ def run_row(label,disabled,key=None):
     run,chat=st.container(key='t13runrow_'+(key or 'x')).columns([4,1.4],gap='small',vertical_alignment='center')
     clicked=run.button(label,type='primary',disabled=disabled,width='stretch',key=key)
     with chat:
-        fragment('<button type="button" class="run-chat-btn" data-chat aria-controls="chat-panel" aria-label="학습 도우미 챗봇 열기"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4H3v14h5l4 4v-4h9ZM7 9h10M7 13h6"/></svg>챗봇</button>')
+        fragment('<button type="button" class="run-chat-btn" data-chat aria-controls="chat-panel" aria-label="LNG_NI 챗봇 열기"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4H3v14h5l4 4v-4h9ZM7 9h10M7 13h6"/></svg>챗봇</button>')
     return clicked
 
 def step(num,title):
@@ -423,9 +423,9 @@ def render_quiz(mode, cfg, cases):
                     lines.append(f'<p class="q-line"><span>내 선택</span><b>{verdict(pick)}</b><i class="{"ok" if me_ok else "ng"}">{"맞음" if me_ok else "틀림"}</i></p>')
                     if 'view' in r:
                         v = r['view']; ok = v['defect'] == c['defect']
-                        score = f" {v['score']*100:.1f}%" if v['score'] is not None else ''
-                        detail = '' if mode == 'classification' else f' · {html.escape(v["label"])}'
-                        lines.append(f'<p class="q-line"><span>모델 판정</span><b>{verdict(v["defect"])}{detail}{score}</b><i class="{"ok" if ok else "ng"}">{"맞음" if ok else "틀림"}</i></p>')
+                        # three lines: verdict / class label / score  (e.g. 양품 / 볼트체결 / 97.3%)
+                        parts = [verdict(v['defect']), html.escape(v['label'])] + ([f"{v['score']*100:.1f}%"] if v['score'] is not None else [])
+                        lines.append(f'<p class="q-line"><span>모델 판정</span><b class="q-multi">{"<br>".join(parts)}</b><i class="{"ok" if ok else "ng"}">{"맞음" if ok else "틀림"}</i></p>')
                     else: lines.append('<p class="q-line"><span>모델 판정</span><b>검사 실패</b></p>')
                     fragment('<div class="q-card">' + ''.join(lines) + '</div>')
         st.caption(f"검사 {state['time']} · 모델 점수는 정답률이 아닙니다." + ('' if mode == 'classification' else f' 점수 {SHOW_SCORE} 이상 후보에 불량 클래스가 있으면 불량으로 봅니다.'), help=None)
@@ -446,7 +446,7 @@ def render_quiz(mode, cfg, cases):
             for c in cases: st.session_state.pop(f"{key}_pick_{c['id']}", None)
             st.session_state.pop(key, None); st.rerun()
         with chat:
-            fragment('<button type="button" class="run-chat-btn" data-chat aria-controls="chat-panel" aria-label="학습 도우미 챗봇 열기"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4H3v14h5l4 4v-4h9ZM7 9h10M7 13h6"/></svg>챗봇</button>')
+            fragment('<button type="button" class="run-chat-btn" data-chat aria-controls="chat-panel" aria-label="LNG_NI 챗봇 열기"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4H3v14h5l4 4v-4h9ZM7 9h10M7 13h6"/></svg>챗봇</button>')
         marks = [(e['name'], e['ok'], model_mark(results[c['id']].get('view'), c)) for e, c in zip(entries, order)]
         listed = lambda keep: ', '.join(n for n, mine_ok, ai in marks if keep(mine_ok, ai)) or '없음'
         publish_chat_context(chat_context(cfg, '직접 판단 실습 · 결과 비교 (제출 후)', **{

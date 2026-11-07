@@ -23,7 +23,7 @@ NO_DEFECT = '양품 (불량 없음)'
 
 
 def chat_button():
-    fragment('<button type="button" class="run-chat-btn" data-chat aria-controls="chat-panel" aria-label="학습 도우미 챗봇 열기"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4H3v14h5l4 4v-4h9ZM7 9h10M7 13h6"/></svg>챗봇</button>')
+    fragment('<button type="button" class="run-chat-btn" data-chat aria-controls="chat-panel" aria-label="LNG_NI 챗봇 열기"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4H3v14h5l4 4v-4h9ZM7 9h10M7 13h6"/></svg>챗봇</button>')
 
 
 def score_text(score):
@@ -219,7 +219,7 @@ def render_review(mode, cfg, cases=None):
     mine = accounts.reviews_for(user['id'], mode)
     ctx = {'단계': '사진 업로드 전'}
     with st.container(border=True, key='t13step1'):
-        fragment('<div class="step-row">' + ins.step(1, f'사진을 최대 {MAX_PHOTOS}장 올리면 한 장씩 AI 판정을 검토합니다') + (
+        fragment('<div class="step-row">' + f'<div class="step-head"><h3>사진을 최대 {MAX_PHOTOS}장 올리면 한 장씩 AI 판정을 검토합니다</h3></div>' + (
             f'<ul class="q-summary" aria-label="내 검토 기록 요약 (이 검사)"><li>내 검토 <b>{len(mine)}</b>건</li>'
             f'<li>승인 <b>{sum(r["decision"] == APPROVE for r in mine)}</b></li><li>거절 <b>{sum(r["decision"] == REJECT for r in mine)}</b></li>'
             f'<li class="rv-log-li"><a class="rv-log-link" href="?page=my&amp;view=records">내 검토 기록 보기 <span aria-hidden="true">›</span></a></li></ul>' if mine else '') + '</div>')

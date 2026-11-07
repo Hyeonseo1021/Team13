@@ -20,8 +20,8 @@ SERVICES=[('book','실습 이용 가이드','href','?page=guide'),('list','판�
 def hero():
     from ui import icon
     slides=''.join(f'<div class="slide slide-{k}" role="group" aria-roledescription="슬라이드" aria-label="{i+1} / {len(SLIDES)}"'+(' hidden' if i else '')+f'><a class="slide-link" href="?inspection={k}"><span class="slide-art">{illustration(k)}<span class="beam" aria-hidden="true"></span></span><span class="slide-body"><span class="slide-num" aria-hidden="true">{n}</span><span class="slide-text"><strong>{t}</strong>{d}</span><span class="slide-go">검사 바로가기<span aria-hidden="true"> →</span></span></span></a></div>' for i,(k,n,t,d) in enumerate(SLIDES))
-    return ('<section class="hero" aria-labelledby="hero-title"><div class="hero-copy"><p class="eyebrow">LNG QUALITY ACADEMY</p>'
-      '<h1 id="hero-title">현장을 이해하는 첫걸음,<br><em>AI와 함께하는 품질검사</em></h1>'
+    return ('<section class="hero" aria-labelledby="hero-title"><div class="hero-copy">'
+      '<h1 id="hero-title">현장을 이해하는 첫걸음,<br><em>LNG탱크 품질검사는 <i class="t13-brand">LNG_NI</i>&nbsp;&nbsp;와 함께</em></h1>'
       '<p class="hero-desc">직접 관찰하고, 검사하고, 비교하며 배우세요. <br>LNG 탱크 품질검사를 위한 신입직원 실습 공간입니다.</p>'
       '<div class="hero-actions"><a class="btn btn-primary" href="?inspection=classification">시작하기</a><a class="btn btn-line" href="?page=guide">이용 가이드 보기</a></div></div>'
       '<div class="hero-slider" role="region" aria-roledescription="캐러셀" aria-label="검사 종류 소개"><div class="slides" aria-live="off">'+slides+'</div>'
