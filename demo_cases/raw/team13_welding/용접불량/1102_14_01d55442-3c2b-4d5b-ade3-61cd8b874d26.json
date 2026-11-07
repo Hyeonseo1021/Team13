@@ -1,0 +1,238 @@
+{
+    "info": {
+        "name": "LNG 탱크 품질 검사 이미지 데이터",
+        "description": "LNG 탱크 제조 및 운영 품질 검사 데이터",
+        "date_created": "2023-10-24",
+        "contributor": "미래아이티컨소시엄",
+        "version": "1.0"
+    },
+    "images": [
+        {
+            "id": 1,
+            "width": 2992,
+            "height": 2992,
+            "file_name": "1102_14_01d55442-3c2b-4d5b-ade3-61cd8b874d26.jpg",
+            "license": 1,
+            "date_captured": "2023-09-08 23:08:55"
+        }
+    ],
+    "licenses": [
+        {
+            "id": 1,
+            "name": "CC BY-NC",
+            "url": "http://creativecommons.org/licenses/by-nc-sa/2.0/"
+        }
+    ],
+    "categories": [
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 1102,
+            "name": "용접불량"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 1202,
+            "name": "용접블로우홀"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 1101,
+            "name": "용접양품"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 2102,
+            "name": "균열"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 2202,
+            "name": "도장흐름"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 2302,
+            "name": "도막떨어짐"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 2402,
+            "name": "도막분리"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 2502,
+            "name": "스크래치"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 2602,
+            "name": "보온재손상"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 2702,
+            "name": "탱크클리닝불량"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 2101,
+            "name": "표면양품"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 3102,
+            "name": "볼트체결불량"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 3101,
+            "name": "볼트체결양품"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 4102,
+            "name": "케이블설치불량"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 4101,
+            "name": "케이블설치양품"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 4202,
+            "name": "케이블손상"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 4201,
+            "name": "케이블양품"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 4302,
+            "name": "바인딩불량"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 4301,
+            "name": "바인딩양품"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 5102,
+            "name": "절단불량"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 5101,
+            "name": "절단양품"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 6102,
+            "name": "폼스프레이불량"
+        },
+        {
+            "supercategory": "LNG탱크부품품질",
+            "id": 6101,
+            "name": "폼스프레이양품"
+        }
+    ],
+    "annotations": [
+        {
+            "id": 1,
+            "image_id": 1,
+            "category_id": 1102,
+            "attributes": {
+                "tank_type": "C",
+                "location": "외부",
+                "sub_location": "지지대",
+                "work": "용접",
+                "part": "조인트",
+                "quality": "불량품",
+                "volume": 2500,
+                "material": "9%니켈강"
+            },
+            "iscrowd": 0,
+            "area": 1552513.6,
+            "segmentation": [
+                1.9,
+                1669.4,
+                530.5,
+                1667.8,
+                606.3,
+                1659.1,
+                913.8,
+                1664.0,
+                976.6,
+                1697.0,
+                1045.2,
+                1687.1,
+                1324.0,
+                1626.4,
+                1556.9,
+                1618.3,
+                1714.4,
+                1627.0,
+                2110.1,
+                1611.0,
+                2397.5,
+                1597.8,
+                2440.4,
+                1612.4,
+                2559.6,
+                1597.3,
+                2669.2,
+                1573.8,
+                2730.0,
+                1589.6,
+                2795.5,
+                1571.4,
+                2953.5,
+                1586.4,
+                2991.4,
+                1577.0,
+                2991.2,
+                2054.2,
+                2837.0,
+                2061.5,
+                2659.1,
+                2079.0,
+                2495.8,
+                2090.6,
+                1895.1,
+                2125.6,
+                1752.3,
+                2137.3,
+                1247.8,
+                2186.9,
+                1145.7,
+                2181.0,
+                1022.9,
+                2190.6,
+                924.1,
+                2183.9,
+                772.8,
+                2189.8,
+                612.8,
+                2195.6,
+                340.4,
+                2217.8,
+                227.2,
+                2221.9,
+                68.3,
+                2240.0,
+                1.0,
+                2248.4
+            ],
+            "bbox": [
+                1.0,
+                1571.4,
+                2990.4,
+                677.0
+            ]
+        }
+    ]
+}

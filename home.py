@@ -19,7 +19,7 @@ SERVICES=[('book','실습 이용 가이드','href','?page=guide'),('list','판�
 
 def hero():
     from ui import icon
-    slides=''.join(f'<div class="slide slide-{k}" role="group" aria-roledescription="슬라이드" aria-label="{i+1} / {len(SLIDES)}"'+(' hidden' if i else '')+f'><a class="slide-link" href="?inspection={k}"><span class="slide-art">{illustration(k)}<span class="beam" aria-hidden="true"></span></span><span class="slide-body"><span class="slide-num" aria-hidden="true">{n}</span><span class="slide-text"><strong>{n}. {t}</strong>{d}</span><span class="slide-go">검사 바로가기<span aria-hidden="true"> →</span></span></span></a></div>' for i,(k,n,t,d) in enumerate(SLIDES))
+    slides=''.join(f'<div class="slide slide-{k}" role="group" aria-roledescription="슬라이드" aria-label="{i+1} / {len(SLIDES)}"'+(' hidden' if i else '')+f'><a class="slide-link" href="?inspection={k}"><span class="slide-art">{illustration(k)}<span class="beam" aria-hidden="true"></span></span><span class="slide-body"><span class="slide-num" aria-hidden="true">{n}</span><span class="slide-text"><strong>{t}</strong>{d}</span><span class="slide-go">검사 바로가기<span aria-hidden="true"> →</span></span></span></a></div>' for i,(k,n,t,d) in enumerate(SLIDES))
     return ('<section class="hero" aria-labelledby="hero-title"><div class="hero-copy"><p class="eyebrow">LNG QUALITY ACADEMY</p>'
       '<h1 id="hero-title">현장을 이해하는 첫걸음,<br><em>AI와 함께하는 품질검사</em></h1>'
       '<p class="hero-desc">직접 관찰하고, 검사하고, 비교하며 배우세요. <br>LNG 탱크 품질검사를 위한 신입직원 실습 공간입니다.</p>'
