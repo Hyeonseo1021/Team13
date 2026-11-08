@@ -1,0 +1,23 @@
+{
+ "classification": {
+  "verdict": "불량",
+  "label": "폼스프레이불량",
+  "score": 100.0,
+  "truth": "폼스프레이불량",
+  "source": "6102_19_0ae3068a-1860-41a0-a2d8-dc0776c3c77e.jpg"
+ },
+ "detection": {
+  "verdict": "불량",
+  "label": "볼트체결불량",
+  "score": 99.7,
+  "truth": "볼트체결불량",
+  "source": "3102_15_0bf446dd-9124-4c0e-9da5-54ebc6e3792b.JPG"
+ },
+ "segmentation": {
+  "verdict": "불량",
+  "label": "용접불량",
+  "score": 94.9,
+  "truth": "용접불량",
+  "source": "1102_14_00acf3f2-27a2-4593-b3d1-f82dd89ed1e2.jpg"
+ }
+}

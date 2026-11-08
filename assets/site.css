@@ -867,3 +867,298 @@ main[class^="ws-"] ~ .footer,.footer{padding:10px 0 8px}
 
 .t13-brand{font-style:italic}
 #hero-title .t13-brand{color:#C2410C}
+
+/* 학습 순서, reworked: header + subtitle, three step cards with a "바로가기" cue, helper links in a footer row */
+.steps-card{display:flex;flex-direction:column}
+.t13 .steps-sub{font-size:13px;color:var(--muted);margin-top:2px}
+.learn-steps{gap:16px;flex:1}
+.learn-steps li+li::before{left:-12px;top:50%;margin-top:-4px}
+.t13 .learn-steps a{flex-direction:column;gap:6px;padding:14px 16px;background:#fbfcfe;transition:border-color .15s,background .15s}
+.t13 .learn-steps a:hover{background:#f3f7fd}
+.step-top{display:flex;align-items:center;gap:10px}
+.learn-steps .step-no{margin:0;flex:0 0 auto}
+.learn-steps strong{font-size:16px;line-height:1.3}
+.step-desc{font-size:13px}
+.step-go{margin-top:auto;padding-top:4px;font-size:13px;font-weight:700;color:var(--navy)}
+.t13 .learn-steps a:hover .step-go{text-decoration:underline}
+.steps-help{display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.steps-help-label{font-size:13px;color:var(--muted)}
+@container t13 (max-width:640px){.t13 .learn-steps a{flex-direction:column;align-items:stretch;padding:12px 14px}.learn-steps{gap:8px}.step-go{display:none}.steps-help{flex-direction:column;align-items:flex-start}}
+@media(max-height:760px){.steps-sub,.steps-help-label{display:none}.steps-help{margin-top:8px;padding-top:8px;justify-content:flex-end}}
+
+/* hero slide: bigger picture, slimmer caption (title + one-line description) */
+.home-main .slide-link svg{aspect-ratio:400/150}
+.home-main .slide-body{padding:8px 14px;gap:10px;align-items:center;line-height:1.4}
+.home-main .slide-num{width:26px;height:26px;font-size:14px}
+.home-main .slide-text{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-main .slide-text strong{font-size:15px;line-height:1.35}
+.home-main .slide-go{font-size:13px}
+@media(max-height:820px){.home-main .slide-link svg{aspect-ratio:400/130}}
+@media(max-height:760px){.home-main .slide-link svg{aspect-ratio:400/118}}
+@container t13 (max-width:640px){.home-main .slide-link svg{aspect-ratio:400/120}.home-main .slide-text{font-size:0}.home-main .slide-text strong{font-size:15px}}
+
+/* 오답 복습 dialog: fit in one screen, no scrolling. The photo shrinks to the space left after the
+   dialog title, caption, prev/next row and margins (about 290px). */
+[class*="st-key-t13revdlg"] [data-testid="stImage"] img{max-height:max(160px,calc(100dvh - 290px))!important;width:100%!important;object-fit:contain;background:#f3f6fa;border-radius:6px}
+[class*="st-key-t13revdlg"] [data-testid="stImageCaption"]{margin-top:2px}
+[class*="st-key-t13revdlg"] .conf-bars{gap:3px}
+[class*="st-key-t13revdlg"] .q-line{padding:2px 0}
+[class*="st-key-t13revdlg"] .rev-tip,[class*="st-key-t13revdlg"] .conf-note{margin:6px 0!important}
+
+/* 직접 판단 실습 결과 카드: 내 선택이 맞으면 연한 하늘색, 틀리면 연한 붉은색 */
+[class*="st-key-t13qcok"]{background:#e8f4fd!important;border-color:#b9dcf5!important}
+[class*="st-key-t13qcng"]{background:#fdecec!important;border-color:#f3c4c4!important}
+[class*="st-key-t13qcok"] .q-line,[class*="st-key-t13qcng"] .q-line{border-top-color:rgba(0,0,0,.07)}
+[data-testid="stVerticalBlockBorderWrapper"]:has(> [class*="st-key-t13qcok"]){background:#e8f4fd!important;border-color:#b9dcf5!important}
+[data-testid="stVerticalBlockBorderWrapper"]:has(> [class*="st-key-t13qcng"]){background:#fdecec!important;border-color:#f3c4c4!important}
+/* 하단 링크(개인정보 및 데이터 안내 · 기업교육 문의 · 이용 가이드): 오른쪽 끝에 붙여 우측 정렬.
+   홈에는 챗봇 버튼이 없으므로 그 자리를 비워 두던 오른쪽 여백도 없앤다. 버튼 안쪽 여백(5px)만큼 더 밀어 글자 끝을 맞춘다. */
+.footer .footer-links{margin-left:auto;justify-content:flex-end;margin-right:-5px}
+@container t13 (max-width:1100px){.home-main + .footer{padding-right:0!important}}
+/* 참고 문서 목록: 번호가 상자 왼쪽 밖으로 나가지 않도록 번호를 직접 그려 왼쪽 칸 안에 둔다. */
+.chat-sources ol{list-style:none;counter-reset:src;margin:6px 0 2px;padding:0}
+.chat-sources li{counter-increment:src;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:6px;min-width:0}
+.chat-sources li::before{content:counter(src) ".";grid-row:1 / span 3;color:var(--navy);font-weight:600;font-size:13px;line-height:inherit}
+.chat-sources li>*{grid-column:2}
+/* 참고 문서: 번호와 문서 제목을 같은 글꼴·크기·굵기·색·줄간격으로 통일 */
+.t13 .chat-sources li::before,.t13 .chat-sources li>b{font-family:inherit;font-size:13px;font-weight:600;line-height:1.5;color:var(--ink);font-style:normal;letter-spacing:normal}
+
+/* 직접 판단 실습 사진 크게 보기 (site.js T13_LIGHTBOX) */
+[class*="st-key-t13quizgrid"] [data-testid="stImage"] img,[class*="st-key-t13qc"] [data-testid="stImage"] img{cursor:zoom-in}
+[class*="st-key-t13quizgrid"] [data-testid="stImage"] img:focus-visible,[class*="st-key-t13qc"] [data-testid="stImage"] img:focus-visible{outline:3px solid #2765d4;outline-offset:2px}
+[class*="st-key-t13quizgrid"] [data-testid="stElementToolbar"],[class*="st-key-t13qc"] [data-testid="stElementToolbar"]{display:none}
+dialog.t13-lightbox{width:min(1100px,calc(100vw - 24px));max-height:calc(100dvh - 24px);padding:0;border:0;border-radius:10px;background:#fff;box-shadow:0 10px 40px #0004;overflow:hidden}
+dialog.t13-lightbox::backdrop{background:rgba(15,25,40,.72)}
+.t13-lightbox .t13-lb-top{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 10px 18px;border-bottom:1px solid #DDE3EA}
+.t13-lightbox h2{margin:0;font-size:17px;font-weight:700;color:#1E2A3B;font-family:Pretendard,-apple-system,'Noto Sans KR',sans-serif}
+.t13-lightbox .t13-lb-close{width:44px;height:44px;border:0;background:none;font-size:28px;line-height:1;color:#1E2A3B;cursor:pointer;border-radius:6px}
+.t13-lightbox .t13-lb-close:hover{background:#F4F6F9}
+.t13-lightbox img{display:block;width:100%;height:auto;max-height:calc(100dvh - 24px - 66px);object-fit:contain;background:#F4F6F9;cursor:zoom-out}
+
+/* 홈 히어로: 실제 검사 결과 사진 (home.slide_art). SVG가 크기 상자 역할, 사진은 그 위를 덮는다. */
+.slide-art .slide-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.slide-art .slide-ai{position:absolute;left:10px;top:10px;display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 8px;border-radius:6px;background:rgba(255,255,255,.94);box-shadow:0 2px 8px #0003;font-size:13px;font-weight:600;color:var(--ink);line-height:1.2;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slide-art .slide-ai>span{color:var(--muted);font-weight:600;font-size:12px}
+.slide-art .slide-ai b{padding:1px 6px;border-radius:4px;font-size:12px}
+.slide-art .slide-ai b.bad{background:#fdecea;color:#a3271b}.slide-art .slide-ai b.good{background:#e7f4ec;color:#1f6b3f}
+.slide-art .slide-ai{z-index:2}  /* scan beam runs over the photo, under the AI badge */
+
+/* ---- 시험 (?page=exam): photo grid, score card ---- */
+[class*="st-key-t13examgrid"] [data-testid="stImage"] img{height:clamp(110px,14vw,190px);width:100%;object-fit:cover;cursor:zoom-in;border-radius:4px}
+[class*="st-key-t13examgrid"] .q-title{font-size:15px!important;margin-bottom:2px!important}
+[class*="st-key-t13examgrid"] [data-testid="stButtonGroup"] button{min-height:40px;font-size:15px;flex:1}
+[class*="st-key-t13examres"] [data-testid="stImage"] img{height:clamp(90px,11vw,160px);width:100%;object-fit:cover;cursor:zoom-in}
+.t13 .exam-sub{font-size:13px;font-weight:500;color:var(--muted)}
+.exam-score{display:flex;flex-wrap:wrap;align-items:center;gap:14px 24px;padding:20px 24px;border:1px solid var(--line);border-radius:8px;background:#fff;margin:4px 0}
+.exam-score.pass{background:#eef7f1;border-color:#bfe0cb}.exam-score.fail{background:#fdf1f0;border-color:#f2c9c4}
+.exam-badge{font-size:20px;font-weight:800;padding:8px 18px;border-radius:999px;color:#fff;background:#1f6b3f}
+.exam-score.fail .exam-badge{background:#a3271b}
+.exam-num{font-size:18px;color:var(--ink)}.exam-num b{font-size:36px;font-weight:800;color:var(--navy)}
+.exam-num small{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.t13 .exam-per{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}
+.exam-per li{padding:6px 12px;border-radius:6px;background:#fffc;border:1px solid var(--line);font-size:14px}
+.exam-per li span{color:var(--muted);margin-right:6px}
+.t13 .exam-saved{flex-basis:100%;font-size:13px;color:var(--muted);margin:0}
+@container t13 (max-width:640px){[class*="st-key-t13examgrid"] [data-testid="stColumn"],[class*="st-key-t13examres"] [data-testid="stColumn"]{flex-basis:calc(50% - .5rem)!important;min-width:calc(50% - .5rem)!important}
+ [class*="st-key-t13examgrid"] [data-testid="stHorizontalBlock"],[class*="st-key-t13examres"] [data-testid="stHorizontalBlock"]{flex-wrap:wrap}
+ [class*="st-key-t13examgrid"] [data-testid="stImage"] img{height:120px}.exam-num b{font-size:30px}}
+/* 5 menu items (시험 added): never wrap a label; tighten spacing before the bar runs out of room */
+.gnb-btn{white-space:nowrap}
+@container t13 (max-width:1180px){.gnb-btn{padding:0 14px}}
+@container t13 (max-width:990px){.gnb-list{gap:0}.gnb-btn{padding:0 9px;font-size:15px;gap:4px}.hd-search-row{flex-basis:200px;min-width:150px}}
+[class*="st-key-t13examgrid"] [data-testid="stButtonGroup"] button{padding:0 4px;min-width:0}
+[class*="st-key-t13examgrid"] [data-testid="stButtonGroup"] button *{overflow:visible!important;text-overflow:clip!important;white-space:nowrap}
+@container t13 (max-width:990px) and (min-width:641px){[class*="st-key-t13examgrid"] [data-testid="stHorizontalBlock"],[class*="st-key-t13examres"] [data-testid="stHorizontalBlock"]{flex-wrap:wrap}
+ [class*="st-key-t13examgrid"] [data-testid="stColumn"],[class*="st-key-t13examres"] [data-testid="stColumn"]{flex-basis:calc(33.3% - .7rem)!important;min-width:calc(33.3% - .7rem)!important}
+ [class*="st-key-t13examgrid"] [data-testid="stImage"] img{height:150px}}
+[class*="st-key-t13examgrid"] [data-testid="stColumn"],[class*="st-key-t13examres"] [data-testid="stColumn"]{flex-grow:0}
+[class*="st-key-t13examgrid"] [data-testid="stElementToolbar"],[class*="st-key-t13examres"] [data-testid="stElementToolbar"]{display:none}
+
+/* ---- LNG_NI brand orange: the name everywhere, and the whole chatbot (launcher, panel, buttons) ---- */
+:root{--orange:#C2410C;--orange-dark:#9A3412;--orange-bg:#FFF1E8;--orange-line:#F1D5C2}
+.t13-brand{color:var(--orange)}
+.t13 .chat-launcher .t13-brand,.user .chat-bubble .t13-brand{color:inherit}   /* on orange fills the name stays white */
+.t13-chat-root{--navy:var(--orange);--navy-dark:var(--orange-dark)}
+.t13 .chat-launcher{background:var(--orange);box-shadow:0 5px 18px #9a341240}
+.t13 .chat-launcher:hover{background:var(--orange-dark)}
+.t13-chat-root .chat-panel{background:#FFF9F5;border-left-color:var(--orange-line);box-shadow:-10px 0 30px #9a341214}
+.t13-chat-root .chat-head{border-bottom-color:var(--orange-line)}
+.t13-chat-root .chat-avatar{background:var(--orange-bg);color:var(--orange)}
+.t13-chat-root .chat-disclaimer{background:var(--orange-bg);color:#7C2D12;border-bottom-color:var(--orange-line)}
+.t13-chat-root .chat-speaker,.t13-chat-root .chat-status,.t13-chat-root .chat-more-live{color:#7A5240}
+.t13-chat-root .chat-bubble{border-color:var(--orange-line)}
+.t13-chat-root .user .chat-bubble{background:var(--orange);border-color:var(--orange);color:#fff}
+.t13-chat-root .chat-bubble.is-static{background:#FFF4EC}
+.t13-chat-root .chat-bubble.is-empty::after{color:#B7795A}
+.t13-chat-root .chat-prompts button{border-color:#EFC3A6;color:var(--orange)}
+.t13-chat-root .chat-prompts button:hover{background:var(--orange-bg)}
+.t13-chat-root .chat-compose{border-color:#E3AE8D}
+.t13-chat-root .chat-compose:focus-within,.t13-chat-root .chat-more summary:focus-visible{outline-color:var(--orange)}
+.t13-chat-root .chat-compose button{background:var(--orange)}
+.t13-chat-root .chat-compose button:disabled{background:#F7DDCC;color:#8A4A25}
+.t13-chat-root .chat-compose button.is-stop{background:#b42318}
+.t13-chat-root .chat-table th{background:var(--orange-bg);color:var(--orange-dark)}
+.t13-chat-root .chat-table th,.t13-chat-root .chat-table td,.t13-chat-root .chat-guide,.t13-chat-root .chat-more,
+.t13-chat-root .chat-sources,.t13-chat-root .chat-chart{border-color:var(--orange-line)}
+.t13-chat-root .user .chat-table th,.t13-chat-root .user .chat-table td{border-color:#ffffff55;background:transparent;color:inherit}
+.t13-chat-root .chat-note{background:var(--orange-bg);color:#7C2D12}
+.t13-chat-root .chat-guide-note{color:#5B3A2A}
+.t13-chat-root .chat-sources span{color:#7A5240}
+.t13 .run-chat-btn{border-color:var(--orange);color:var(--orange)}
+.t13 .run-chat-btn:hover{background:var(--orange-bg)}
+
+/* ---- 판정 검토 (?page=judge): locked notice, 5-step guide ---- */
+.judge-lock{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:40px 20px;margin-top:4px}
+.judge-lock .icon{color:var(--muted);stroke:currentColor;fill:none;stroke-width:1.6}
+.t13 .judge-lock h3{margin:0!important;font-size:19px;color:var(--navy)}
+.t13 .judge-lock p{margin:0!important;max-width:560px;color:var(--muted);font-size:15px;line-height:1.7}
+.t13 .judge-lock .login-submit{padding:0 28px;margin-top:8px}
+.gd-steps:has(li:nth-child(5)){grid-template-columns:repeat(5,minmax(0,1fr))}
+@container t13 (max-width:1180px){.gd-steps:has(li:nth-child(5)){grid-template-columns:repeat(3,minmax(0,1fr))}.gd-steps:has(li:nth-child(5)) li:nth-child(4)::before{display:none}}
+@container t13 (max-width:640px){.gd-steps:has(li:nth-child(5)){grid-template-columns:1fr}}
+/* 6 menu items: on tablet / narrow laptop widths the search box moves behind the search icon (as on phones)
+   so the whole menu bar fits; the icon opens it as a drop-down under the bar's right end */
+@container t13 (max-width:960px) and (min-width:641px){
+ .hd-search-row{display:none;position:absolute;right:0;top:calc(100% + 6px);width:min(360px,100%);z-index:60;background:#fff;padding:8px;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px #1e2a3b22}
+ .site-header.search-open .hd-search-row{display:block}
+ .t13 .search-toggle,.site-header.is-home .search-toggle{display:grid}
+ .gnb-btn{padding:0 10px}
+}
+@container t13 (max-width:720px) and (min-width:641px){.gnb-btn{padding:0 7px;font-size:14px}}
+@container t13 (max-width:1180px) and (min-width:961px){.hd-search-row{flex-basis:270px;min-width:200px}}
+@container t13 (max-width:1080px) and (min-width:961px){.gnb-btn{padding:0 11px}}
+
+/* ---- 내 학습 현황: stage tiles (① 실습 ② 역량평가 ③ 판정 검토 · 다음 할 일) ---- */
+.status-steps{list-style:none;margin:0 0 12px;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.status-steps li a{display:flex;flex-direction:column;gap:2px;height:100%;padding:10px 12px;border-radius:6px;background:var(--bg);border:1px solid transparent;text-decoration:none;color:var(--ink)}
+.status-steps li a:hover{border-color:var(--line);background:#fff}
+.status-steps .ss-label{font-size:13px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status-steps b{font-size:24px;font-weight:800;line-height:1.2;color:var(--ink)}
+.status-steps b small{font-size:14px;font-weight:700;margin-left:1px}
+.status-steps .ss-sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status-steps li.ok b{color:#26745e}.status-steps li.ng b{color:#b4372f}
+.status-steps li.lock b{font-size:20px;opacity:.7}
+.status-steps li.next a{background:var(--navy);color:#fff}
+.status-steps li.next a:hover{background:var(--navy-dark);border-color:transparent}
+.status-steps li.next .ss-label,.status-steps li.next .ss-sub{color:#ffffffcc}
+.status-steps li.next b{font-size:16px;color:#fff;margin:4px 0 2px}
+.recent-ic{display:grid;place-items:center;color:var(--navy)}.recent-ic .icon{width:20px;height:20px}
+.recent-dec:not(.ok):not(.ng){background:var(--bg);color:var(--muted)}
+.t13 .status-none{font-size:14px;color:var(--muted);margin:0}
+@container t13 (max-width:990px) and (min-width:641px){.status-steps b{font-size:20px}}
+@container t13 (max-width:640px){.status-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-height:820px){.status-steps{margin-bottom:10px;gap:6px}.status-steps li a{padding:8px 10px}.status-steps b{font-size:20px}.status-steps li.next b{font-size:15px}}
+
+/* ---- Home hero background: layered gradient (was flat --sky-bg #E8F2FC) ----
+   sky-to-blue diagonal + brand-orange glow behind the headline + deep-blue glow under the slider,
+   a faint blueprint grid that fades out, and a thin orange->blue accent line on top. Text stays on light tones. */
+.hero{position:relative;isolation:isolate;overflow:hidden;
+ background:
+  radial-gradient(520px 260px at 8% -10%,rgba(234,108,46,.16),transparent 70%),
+  radial-gradient(640px 420px at 105% 110%,rgba(31,104,181,.30),transparent 65%),
+  radial-gradient(420px 260px at 60% 40%,rgba(255,255,255,.55),transparent 70%),
+  linear-gradient(125deg,#F6FAFF 0%,#E6F0FC 45%,#D3E4F8 100%);
+ border:1px solid #D2E1F3;box-shadow:inset 0 1px 0 #ffffffcc,0 10px 30px -18px #1d3a6e55}
+.hero::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
+ background-image:linear-gradient(#1d3a6e0f 1px,transparent 1px),linear-gradient(90deg,#1d3a6e0f 1px,transparent 1px);
+ background-size:28px 28px;
+ -webkit-mask-image:radial-gradient(120% 90% at 85% 50%,#000 20%,transparent 75%);mask-image:radial-gradient(120% 90% at 85% 50%,#000 20%,transparent 75%)}
+.hero::after{content:'';position:absolute;left:0;right:0;top:0;height:3px;z-index:1;pointer-events:none;
+ background:linear-gradient(90deg,#C2410C 0%,#F08A4B 30%,#1F68B5 70%,#1D3A6E 100%)}
+.hero .hero-slider{box-shadow:0 14px 34px -16px #1d3a6e66;border-color:#c3d6ee}
+.hero h1 em{background:linear-gradient(90deg,var(--navy),#1F68B5);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero h1 em .t13-brand{-webkit-text-fill-color:var(--orange);color:var(--orange)}
+.status-steps.status-steps-only{margin-bottom:0}
+
+/* ---- Home band: 학습 순서 as tall as 내 학습 현황 (help links moved into the title row, compact step cards) ---- */
+.steps-card .band-head{align-items:flex-start;gap:8px 12px;flex-wrap:wrap}
+.steps-links{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.steps-links .band-link{font-size:13px;padding:5px 10px;min-height:32px}
+.t13 .steps-card .learn-steps a{gap:4px;padding:12px 14px}
+.steps-card .learn-steps .step-top{display:flex;align-items:center;gap:8px}
+.steps-card .step-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.steps-card .step-go{font-size:13px;margin-top:auto}
+/* 내 학습 현황 tiles take up any height left over, so the two cards end on the same line without a blank strip */
+.home-band .status-card{display:flex;flex-direction:column}
+.home-band .status-card .status-steps{flex:1;align-content:stretch}
+.home-band .status-card .status-steps li a{justify-content:center}
+
+/* ---- LNG_NI chatbot, polished orange theme ----
+   gradient header with a glass avatar, glowing gradient launcher with a soft pulse, warm dotted panel,
+   accent-edged bot bubbles, gradient user bubbles, pill composer with a round send button, fade-up messages. */
+.t13 .chat-launcher{background:linear-gradient(135deg,#9A3412 0%,#C2410C 45%,#EA580C 100%);border:0;box-shadow:0 10px 24px -6px #c2410c80,0 0 0 1px #ffffff40 inset;transition:transform .15s,box-shadow .15s}
+.t13 .chat-launcher:hover{background:linear-gradient(135deg,#7C2D12 0%,#9A3412 45%,#C2410C 100%);transform:translateY(-2px);box-shadow:0 14px 28px -8px #c2410c99,0 0 0 1px #ffffff40 inset}
+.t13 .chat-launcher::after{content:'';position:absolute;inset:-4px;border-radius:inherit;border:2px solid #EA580C;opacity:0;animation:t13-ni-pulse 2.8s ease-out 1s 3;pointer-events:none}
+@keyframes t13-ni-pulse{0%{opacity:.55;transform:scale(.96)}80%,100%{opacity:0;transform:scale(1.18)}}
+.t13-chat-root .chat-head{position:relative;background:linear-gradient(120deg,#9A3412 0%,#C2410C 55%,#D9541A 100%);color:#fff;border-bottom:0;box-shadow:0 6px 16px -10px #7c2d12aa}
+.t13-chat-root .chat-head h2,.t13-chat-root .chat-head h2 .t13-brand{color:#fff;-webkit-text-fill-color:#fff}
+.t13-chat-root .chat-head p{color:#fff;opacity:.9}
+.t13-chat-root .chat-head .chat-avatar{background:#ffffff26;color:#fff;box-shadow:0 0 0 1px #ffffff40 inset;backdrop-filter:blur(4px)}
+.t13-chat-root .chat-actions button{color:#fff;border-radius:8px;transition:background .15s}
+.t13-chat-root .chat-actions button:hover{background:#ffffff26}
+.t13-chat-root .chat-actions button:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+.t13-chat-root .chat-disclaimer{background:#FFF4EC;border-bottom:1px solid var(--orange-line);font-size:11.5px}
+.t13-chat-root .chat-panel{background:radial-gradient(#c2410c14 1px,transparent 1.2px) 0 0/18px 18px,linear-gradient(180deg,#FFF9F5 0%,#FFF3EA 100%)}
+.t13-chat-root .chat-message{animation:t13-msg-in .28s ease-out both}
+@keyframes t13-msg-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.t13-chat-root .chat-message:not(.user) .chat-bubble{border-left:3px solid var(--orange);border-radius:4px 12px 12px 12px;box-shadow:0 4px 14px -8px #9a341240}
+.t13-chat-root .chat-message:not(.user) .chat-bubble.is-static{border-left-style:solid;border-style:solid;border-left-width:3px}
+.t13-chat-root .user .chat-bubble{background:linear-gradient(135deg,#C2410C 0%,#DC5A1E 100%);border:0;border-radius:12px 4px 12px 12px;box-shadow:0 6px 16px -8px #c2410c99}
+.t13-chat-root .chat-bottom{background:#ffffffe6;backdrop-filter:blur(6px);border-top:1px solid var(--orange-line)}
+.t13-chat-root .chat-prompts button{border-radius:999px;transition:background .15s,color .15s,border-color .15s}
+.t13-chat-root .chat-prompts button:hover:not(:disabled){background:var(--orange);border-color:var(--orange);color:#fff}
+.t13-chat-root .chat-compose{border-radius:14px;border-color:#EBC3A8;background:#fff;box-shadow:0 2px 8px -4px #9a341233;transition:box-shadow .15s,border-color .15s}
+.t13-chat-root .chat-compose:focus-within{outline:0;border-color:var(--orange);box-shadow:0 0 0 3px #c2410c2e}
+.t13-chat-root .chat-compose button{border-radius:50%;background:linear-gradient(135deg,#C2410C,#EA580C);box-shadow:0 4px 10px -4px #c2410caa;transition:transform .12s}
+.t13-chat-root .chat-compose button:hover:not(:disabled){transform:scale(1.06)}
+.t13-chat-root .chat-compose button:disabled{background:#F7DDCC;box-shadow:none}
+.t13-chat-root .chat-compose button.is-stop{background:#b42318}
+.t13 .run-chat-btn{background:linear-gradient(#fff,#fff) padding-box,linear-gradient(135deg,#9A3412,#EA580C) border-box;border:1.5px solid transparent;transition:background .15s,color .15s}
+.t13 .run-chat-btn:hover{background:linear-gradient(135deg,#C2410C,#EA580C) padding-box,linear-gradient(135deg,#9A3412,#EA580C) border-box;color:#fff}
+.t13 .run-chat-btn:hover .t13-brand{color:#fff}
+@media(prefers-reduced-motion:reduce){.t13 .chat-launcher::after,.t13-chat-root .chat-message{animation:none}.t13 .chat-launcher:hover{transform:none}}
+
+/* 역량평가 결과: titled group per inspection */
+.exam-group-head{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin:14px 0 2px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.exam-group-no{display:grid;place-items:center;width:26px;height:26px;border-radius:6px;background:var(--navy);color:#fff;font-size:14px;font-weight:800}
+.t13 .exam-group-head h4{margin:0!important;font-size:17px;font-weight:750;color:var(--navy)}
+.exam-group-score{font-size:13px;font-weight:700;padding:2px 9px;border-radius:999px;background:#fbeceb;color:#b4372f}
+.exam-group-score.ok{background:#e9f3ee;color:#26745e}
+.t13 .exam-group-go{margin-left:auto;font-size:13px;font-weight:700;color:var(--sky);text-decoration:none}
+.t13 .exam-group-go:hover{text-decoration:underline}
+.t13 .exam-group-none{font-size:14px;color:var(--muted);margin:6px 0 0!important}
+
+/* chatbot header: a little lighter (text side stays dark enough for white text) */
+.t13-chat-root .chat-head{background:linear-gradient(120deg,#C2410C 0%,#DC5419 55%,#F07436 100%);box-shadow:0 6px 16px -10px #c2410c66}
+.t13 .chat-launcher{background:linear-gradient(135deg,#C2410C 0%,#DC5419 50%,#F07436 100%)}
+.t13 .chat-launcher:hover{background:linear-gradient(135deg,#9A3412 0%,#C2410C 50%,#E2581C 100%)}
+
+/* ---- Site title: emblem + two-tone wordmark ---- */
+.t13 .site-title a{display:inline-flex;align-items:center;gap:.32em;white-space:nowrap}
+.st-emblem{display:grid;place-items:center;flex:0 0 auto;width:1.25em;height:1.25em;border-radius:.3em;
+ background:linear-gradient(140deg,#1D3A6E 0%,#1F68B5 70%,#3B8BD9 100%);box-shadow:0 6px 14px -6px #1d3a6e99,inset 0 1px 0 #ffffff40;transition:transform .2s}
+.st-emblem svg{width:78%;height:78%}
+.t13 .site-title a:hover .st-emblem{transform:rotate(-6deg) scale(1.04)}
+.st-text{display:inline-flex;align-items:baseline;gap:.28em;flex-wrap:wrap;line-height:1.15}
+.st-main{color:var(--navy);font-weight:800}
+.st-lng{font-weight:900;letter-spacing:-.02em;background:linear-gradient(100deg,#1D3A6E 0%,#1F68B5 60%,#C2410C 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.st-sub{position:relative;font-weight:600;color:#1F68B5;padding-left:.32em}
+.st-sub::before{content:'';position:absolute;left:0;top:18%;bottom:12%;width:2px;border-radius:2px;background:linear-gradient(#C2410C,#F07436)}
+.t13 .site-title a:hover .st-main{color:var(--navy-dark)}
+@container t13 (max-width:640px){.t13 .site-title a{white-space:normal;display:inline-flex}.st-emblem{width:1.6em;height:1.6em}}
+@media(prefers-reduced-motion:reduce){.t13 .site-title a:hover .st-emblem{transform:none}}
+@container t13 (max-width:640px){.st-sub{padding-left:0}.st-sub::before{display:none}}
+/* emblem = team logo (wide) on the gradient tile */
+.st-emblem{width:1.85em;height:1.25em;border-radius:.28em}
+.st-emblem img{display:block;width:84%;height:auto;filter:drop-shadow(0 1px 1px #0b1f3f66)}
+@container t13 (max-width:640px){.st-emblem{width:2.3em;height:1.6em}}
+
+/* phones: 학습 순서 step cards stack title then description (the 2-line clamp for PC broke the row layout and cut text) */
+@container t13 (max-width:640px){
+ .t13 .steps-card .learn-steps a{display:flex;flex-direction:column;align-items:stretch;flex-wrap:nowrap;gap:6px;padding:12px 14px}
+ .steps-card .learn-steps .step-top{display:flex;align-items:center;gap:10px}
+ .steps-card .step-desc{display:block;-webkit-line-clamp:unset;overflow:visible;flex-basis:auto;width:100%;white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
+ .steps-card .band-head{flex-direction:column;align-items:flex-start}
+ .steps-links{justify-content:flex-start}
+ .t13 .footer-links{margin-right:0!important;flex-wrap:wrap;justify-content:flex-start;row-gap:4px}
+}

@@ -23,7 +23,7 @@ NO_DEFECT = '양품 (불량 없음)'
 
 
 def chat_button():
-    fragment('<button type="button" class="run-chat-btn" data-chat aria-controls="chat-panel" aria-label="LNG_NI 챗봇 열기"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4H3v14h5l4 4v-4h9ZM7 9h10M7 13h6"/></svg>챗봇</button>')
+    fragment('<button type="button" class="run-chat-btn" data-chat aria-controls="chat-panel" aria-label="LNG_NI 챗봇 열기"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4H3v14h5l4 4v-4h9ZM7 9h10M7 13h6"/></svg><b class="t13-brand">LNG_NI</b></button>')
 
 
 def score_text(score):
@@ -67,17 +67,27 @@ def open_review(title, entries, mode):
         st.caption(f'틀린 사진 {len(wrong)}장' + ('을 정답과 AI 확신도와 함께 다시 봅니다.' if wrong else ' · 모두 맞혔습니다. 사진별 AI 확신도를 확인해 보세요.'))
         idx = st.session_state.get('t13_rev_idx', 0) % len(shown)
         e = shown[idx]
-        a, b = st.columns([1.2, 1], gap='medium')
+        # Everything fits in one screen (no scrolling): the photo is capped to the viewport height in CSS
+        # (st-key-t13revdlg), and detection/segmentation show their boxes/masks on that single photo
+        # instead of a second overlay image under the probability bars.
+        image = ins.read_image(Path(e['path']).read_bytes(), mode)[0] if e.get('body') and mode != 'classification' else None
+        a, b = st.container(key='t13revdlg').columns([1.2, 1], gap='medium')
         with a:
-            st.image(ins.case_thumb(e['path'], Path(e['path']).stat().st_mtime, mode, 1100), width='stretch')
+            pic = None
+            if image is not None:
+                items = e['body'][mode]['detections' if mode == 'detection' else 'instances']
+                found = [x for x in items if x['score'] >= ins.SHOW_SCORE]
+                try: pic = ins.overlay(image, found, mode == 'segmentation')
+                except (ValueError, TypeError, OverflowError): pic = None
+            st.image(pic if pic is not None else ins.case_thumb(e['path'], Path(e['path']).stat().st_mtime, mode, 1100), width='stretch',
+                     caption=f'점수 {ins.SHOW_SCORE} 이상 후보 {len(found)}개' if pic is not None else None)
         with b:
             fragment(f'<p class="q-title">{html.escape(e["name"])}<span class="q-truth {"bad" if e["truth_defect"] else "good"}">정답 {html.escape(e["truth"])}</span></p>'
                      f'<p class="q-line"><span>내 판단</span><b>{html.escape(e["mine"])}</b><i class="{"ok" if e["ok"] else "ng"}">{"맞음" if e["ok"] else "틀림"}</i></p>'
                      f'<p class="q-line"><span>AI 판정</span><b>{html.escape(e["ai"])}</b></p>'
                      + (f'<p class="rev-tip">{html.escape(e["tip"])}</p>' if e.get('tip') else ''))
             if e.get('body'):
-                image = ins.read_image(Path(e['path']).read_bytes(), mode)[0] if mode != 'classification' else None
-                confidence(mode, e['body'], image)
+                confidence(mode, e['body'], show_overlay=False)
                 fragment('<p class="conf-note">확률이 높아도 정답을 보장하지 않습니다. 사진에서 근거를 직접 확인하세요.</p>')
         if len(shown) > 1:
             p, mid, n = st.columns([1, 2, 1], vertical_alignment='center')
@@ -91,7 +101,7 @@ def open_review(title, entries, mode):
 
 
 # ------------------------------------------------------------------ review task (upload -> AI suggestion -> decision)
-COLUMNS = [('created', '검토 시각'), ('mode', '검사 종류'), ('file', '사진'), ('ai', 'AI 판정'), ('score', 'AI 점수'), ('decision', '내 결정'), ('mine', '내 판정')]
+COLUMNS = [('created', '검토 시각'), ('mode', '검사 종류'), ('file', '사진'), ('ai', 'AI 판정'), ('score', 'AI 점수'), ('decision', '내 결정'), ('mine', '내 판정'), ('reason', '검토 사유'), ('criterion', '검사 기준')]
 
 
 def _row(r):
@@ -125,9 +135,10 @@ def photo_uri(user, r, edge=160):
         return ''
 
 
-def log_view(user, key='t13_log', in_dialog=False, mode=None):
+def log_view(user, key='t13_log', in_dialog=False, mode=None, requests=False):
     """The user's saved records: photo thumbnails, select a row to enlarge, CSV download, delete all photos.
-    Used by the review-tab dialog and by 마이페이지 (?page=my). mode filters to one inspection type."""
+    Used by the review-tab dialog and by 마이페이지 (?page=my). mode filters to one inspection type.
+    requests=True (마이페이지): rows can be checked and sent to the admin as exam-question requests."""
     scope = 'fragment' if in_dialog else 'app'
     accounts.purge_old_photos()
     log = accounts.reviews_for(user['id'], mode)
@@ -136,20 +147,58 @@ def log_view(user, key='t13_log', in_dialog=False, mode=None):
     if not log:
         st.info('아직 저장된 검토 기록이 없습니다. AI 판정 검토에서 사진을 검토하면 이곳에 쌓입니다.')
         return
-    rows = [dict({'미리보기': photo_uri(user, r)}, **_row(r)) for r in log]
-    picked = st.dataframe(rows, hide_index=True, width='stretch', row_height=64, on_select='rerun', selection_mode='single-row',
+    req = {}
+    if requests:  # latest request state per photo (a rejected photo can be requested again)
+        for q in reversed(accounts.exam_requests(user['id'])):
+            req[q['photo'].split('_', 1)[-1]] = q['status']
+    def status(r):
+        return req.get(Path(r['photo']).name, '') if r.get('photo') else '사진 없음'
+    rows = [dict({'미리보기': photo_uri(user, r)}, **_row(r), **({'시험 반영': status(r) or '-'} if requests else {})) for r in log]
+    picked = st.dataframe(rows, hide_index=True, width='stretch', row_height=64, on_select='rerun',
+                          selection_mode='multi-row' if requests else 'single-row',
                           column_config={'미리보기': st.column_config.ImageColumn('미리보기', width='small')}, key=f'{key}_table')
-    sel = (picked.selection.rows if picked else []) or []
-    if sel and sel[0] < len(log):
-        r = log[sel[0]]
+    sel = [i for i in ((picked.selection.rows if picked else []) or []) if i < len(log)]
+    if requests:
+        from knowledge_ui import case_controls
+        case_controls(user,[log[i] for i in sel],key,scope)
+    if requests:
+        ok = [log[i] for i in sel if log[i].get('photo') and status(log[i]) in ('', accounts.REQ_NO)]
+        bad = len(sel) - len(ok)
+        a, b = st.columns([2, 3], vertical_alignment='center')
+        if a.button(f'선택한 {len(ok)}건 시험 문제 승인신청', type='primary', icon=':material/send:', disabled=not ok,
+                    width='stretch', key=f'{key}_req'):
+            added, skipped = accounts.request_exam(user['id'], [r['id'] for r in ok])
+            st.session_state[f'{key}_req_msg'] = f'{added}건을 승인신청했습니다. 관리자가 승인하면 수행능력 평가 문제로 출제됩니다.' + (f' ({skipped}건 제외)' if skipped else '')
+            st.session_state.pop(f'{key}_table', None); st.rerun(scope=scope)
+        b.caption('행 왼쪽 칸을 체크해 고르세요. 사진이 보관된 기록만 신청할 수 있고, 내 판정이 정답으로 신청됩니다.  \n'
+                  '신청하면 사진 사본이 시험 문제 보관함에 저장되어 관리자가 볼 수 있습니다.')
+        msg = st.session_state.pop(f'{key}_req_msg', None)
+        if msg: st.success(msg)
+    if sel:
+        r = log[sel[-1]]
         big = accounts.photo_file(user['id'], r.get('photo'))
-        if big:
+        if big:  # no kept photo -> show nothing (notice removed at the user's request)
             st.image(big.read_bytes(), caption=f"{r['file']} · {r['created']} · {r['decision']}", width='stretch' if in_dialog else 720)
-        else:
-            st.caption('이 기록에는 보관된 사진이 없습니다. (동의하지 않았거나, 보관 기간이 지났거나, 사진 저장 전 기록입니다.)')
     else:
         st.caption('행을 선택하면 사진을 크게 볼 수 있습니다.')
+    if requests:  # 마이페이지: delete the checked records themselves (not just their photos)
+        dask = f'{key}_rec_del_ask'
+        picked_rows = [log[i] for i in sel]
+        if st.session_state.get(dask) and picked_rows:
+            st.warning(f'선택한 검토 기록 {len(picked_rows)}건을 삭제합니다. 보관된 사진도 함께 지워지며 되돌릴 수 없습니다. '
+                       '(이미 시험 문제로 신청한 사진 사본은 관리자 보관함에 남습니다.)')
+            y, n, _ = st.columns([1, 1, 3])
+            if y.button('기록 삭제', type='primary', icon=':material/delete_forever:', key=f'{key}_rec_del_yes', width='stretch'):
+                done = accounts.delete_reviews(user['id'], [r['id'] for r in picked_rows])
+                st.session_state[dask] = False; st.session_state.pop(f'{key}_table', None)
+                st.session_state[f'{key}_req_msg'] = f'검토 기록 {done}건을 삭제했습니다.'; st.rerun(scope=scope)
+            if n.button('취소', key=f'{key}_rec_del_no', width='stretch'):
+                st.session_state[dask] = False; st.rerun(scope=scope)
     a, b = st.columns([1, 1], vertical_alignment='center')
+    if requests:
+        a, d, b = st.columns([1, 1, 1], vertical_alignment='center')
+        if d.button(f'선택한 {len(sel)}건 기록 삭제', icon=':material/delete_forever:', disabled=not sel, key=f'{key}_rec_del', width='stretch'):
+            st.session_state[f'{key}_rec_del_ask'] = True; st.rerun(scope=scope)
     a.download_button('CSV로 내려받기', log_csv(log), file_name='team13-ai-review-log.csv', mime='text/csv', icon=':material/download:', key=f'{key}_csv')
     if kept:
         ask = f'{key}_del_ask'
@@ -210,7 +259,7 @@ def render_review(mode, cfg, cases=None):
     user = accounts.current_user()
     if not user:
         from urllib.parse import urlencode
-        href = '?' + urlencode({'page': 'login', 'next': f'?inspection={mode}&task=review'})
+        href = '?' + urlencode({'page': 'login', 'next': f'?page=judge&inspection={mode}'})
         with st.container(border=True, key='t13step1'):
             fragment('<div class="rv-login"><svg class="icon" viewBox="0 0 24 24" width="44" height="44" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>'
                      '<h3>로그인 후 AI 판정 검토를 시작할 수 있습니다</h3><p>누가 어떤 판정을 승인·거절했는지 기록하기 위해 로그인이 필요합니다.</p>'
@@ -281,9 +330,13 @@ def render_review(mode, cfg, cases=None):
                 choice = None
                 if decision == REJECT:
                     choice = st.selectbox('올바른 판정', correction_choices(mode, view), index=None, placeholder='거절 사유: 올바른 판정 선택', key=f'{dec_key}_fix', label_visibility='collapsed')
+                reason = st.text_area('판정 근거·검토 사유',max_chars=1500,key=f'{dec_key}_reason',
+                                      placeholder='직접 확인한 사항과 승인 또는 거절한 이유를 기록하세요.')
+                criterion = st.text_input('적용한 검사 기준·문서 조항 (선택)',max_chars=300,key=f'{dec_key}_criterion')
                 ctx = {'단계': '사진 검토 중 (결정 전)' if not decision else f'사진 검토 중 ({decision} 선택, 기록 전)',
                        '사진': file.name, 'AI 제안': f"{ins.verdict(view['defect'])} · {view['label']} {score_text(view['score'])}",
-                       '모델 결과': ins.model_summary(mode, body), '내 결정': decision or '아직 선택하지 않음'}
+                       '모델 결과': ins.model_summary(mode, body, image.size, threshold=ins.SHOW_SCORE),
+                       '내 결정': decision or '아직 선택하지 않음'}
                 if decision == REJECT: ctx['내가 고른 올바른 판정'] = choice or '아직 선택하지 않음'
                 if mode != 'classification': ctx['화면 표시 기준'] = f'점수 {ins.SHOW_SCORE} 이상 후보만 사진에 표시'
             elif current is None and items:
@@ -296,7 +349,7 @@ def render_review(mode, cfg, cases=None):
                     fragment('<div class="empty-result rv-empty"><svg viewBox="0 0 96 96" aria-hidden="true"><rect x="14" y="20" width="68" height="52" rx="6"/><path d="m22 62 18-18 12 12 8-8 14 14"/><circle cx="62" cy="36" r="6"/></svg>'
                              '<h3>AI 제안이 이곳에 표시됩니다</h3><p>AI 판정을 그대로 믿지 말고, 사진에서 근거를 직접 확인한 뒤 승인하거나 거절하세요.</p></div>')
                 decision = choice = None
-            ready = view is not None and (decision == APPROVE or (decision == REJECT and choice))
+            ready = view is not None and bool(reason.strip()) and (decision == APPROVE or (decision == REJECT and choice))
             with st.container(key='t13runrow_review'):
                 run, chat = st.columns([4, 1.4], gap='small', vertical_alignment='center')
                 if current is None and items:
@@ -304,7 +357,8 @@ def render_review(mode, cfg, cases=None):
                         state['n'] += 1; state['done'] = {}; st.rerun()
                 elif run.button('검토 기록하고 다음 사진' if len(pending) > 1 else '검토 기록하기', type='primary', disabled=not ready, width='stretch', key=f'{key}_save'):
                     rec = {'file': file.name, 'sig': sig, 'ai': f"{ins.verdict(view['defect'])} · {view['label']}", 'score': score_text(view['score']),
-                           'decision': decision, 'mine': choice or f"{ins.verdict(view['defect'])} · {view['label']}"}
+                           'decision': decision, 'mine': choice or f"{ins.verdict(view['defect'])} · {view['label']}",
+                           'reason':reason.strip(),'criterion':criterion.strip()}
                     try:
                         accounts.add_review(user['id'], mode, rec, photo=data if consent else None)
                     except Exception:
@@ -317,5 +371,5 @@ def render_review(mode, cfg, cases=None):
     ctx['정답 라벨'] = '없음 (직접 올린 사진이라 정답이 없습니다. 사진의 근거로 AI 판정을 검토하는 단계입니다)'
     if mine:
         ctx['내 누적 검토 (이 검사)'] = {'전체': len(mine), '승인': sum(r['decision'] == APPROVE for r in mine), '거절': sum(r['decision'] == REJECT for r in mine)}
-        ctx['최근 검토 기록 (최대 5건)'] = [{'사진': r.get('file'), 'AI 판정': r.get('ai'), '내 결정': r.get('decision'), '내 판정': r.get('mine')} for r in mine[:5]]
+        ctx['최근 개인 검토 기록 (검증 여부 미확인, 최대 5건)'] = [{'사진': r.get('file'), 'AI 판정': r.get('ai'), '내 결정': r.get('decision'), '내 판정': r.get('mine')} for r in mine[:5]]
     return ctx

@@ -18,6 +18,7 @@ def safe_next(value):
 
 def render():
     nxt = safe_next(st.query_params.get('next'))
+    accounts.ensure_guest()  # early test build: guest / guest123 prefilled below
     user = accounts.current_user()
     if user:
         body = (f'<div class="login-card"><h1 id="login-title">로그인되어 있습니다</h1><p class="login-lead"><b>{html.escape(user["name"])}</b> 님으로 학습 중입니다.</p>'
@@ -31,8 +32,8 @@ def render():
  <button type="button" role="tab" id="tab-signup" aria-selected="false" aria-controls="form-signup" tabindex="-1">회원가입</button>
 </div>
 <form class="login-form" id="form-login" role="tabpanel" aria-labelledby="tab-login" data-kind="login" novalidate>
- <label for="li-name">이름</label><input id="li-name" name="name" autocomplete="username" maxlength="20" required>
- <label for="li-pw">비밀번호</label><input id="li-pw" name="password" type="password" autocomplete="current-password" maxlength="64" required>
+ <label for="li-name">이름</label><input id="li-name" name="name" autocomplete="username" value="guest" maxlength="20" required>
+ <label for="li-pw">비밀번호</label><input id="li-pw" name="password" type="password" autocomplete="current-password" value="guest123" maxlength="64" required>
  <p class="login-error" role="alert" aria-live="assertive"></p>
  <button type="submit" class="login-submit">로그인</button>
 </form>

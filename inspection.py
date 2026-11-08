@@ -123,13 +123,9 @@ def overlay(image,items,with_mask=False,numbers=None):
 
 KIND={'classification':'CLASSIFICATION','detection':'DETECTION','segmentation':'SEGMENTATION'}
 
-def task_tabs(mode,task):
-    tabs=[('judge','직접 판단 실습',f'?inspection={mode}'),('review','AI 판정 검토',f'?inspection={mode}&task=review')]
-    return ('<nav class="task-tabs" aria-label="실습 종류">'+''.join(
-        f'<a href="{href}"'+(' class="on" aria-current="page"' if k==task else '')+f'>{label}</a>' for k,label,href in tabs)+'</nav>')
-
 def workspace_header(mode,cfg,task='judge'):
-    side=task_tabs(mode,task)
+    # AI 판정 검토 moved to its own 판정 검토 menu (judge_page.py, 역량평가 합격자 전용)
+    side=''
     return (f'<main id="workspace" tabindex="-1" class="ws-{mode}"><div class="breadcrumb">학습 공간 <span aria-hidden="true">/</span> 검사 실습 <span aria-hidden="true">/</span> {cfg["number"]}. {cfg["title"]}</div>'
         f'<section class="workspace-title"><div class="title-row"><div class="title-main"><h1><span class="workspace-number">{cfg["number"]}</span>{cfg["title"]}</h1>'
         f'<p>{cfg["target"]} — {cfg["explain"]}</p></div>{side}</div></section></main>')
@@ -139,7 +135,7 @@ def run_row(label,disabled,key=None):
     run,chat=st.container(key='t13runrow_'+(key or 'x')).columns([4,1.4],gap='small',vertical_alignment='center')
     clicked=run.button(label,type='primary',disabled=disabled,width='stretch',key=key)
     with chat:
-        fragment('<button type="button" class="run-chat-btn" data-chat aria-controls="chat-panel" aria-label="LNG_NI 챗봇 열기"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4H3v14h5l4 4v-4h9ZM7 9h10M7 13h6"/></svg>챗봇</button>')
+        fragment('<button type="button" class="run-chat-btn" data-chat aria-controls="chat-panel" aria-label="LNG_NI 챗봇 열기"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4H3v14h5l4 4v-4h9ZM7 9h10M7 13h6"/></svg><b class="t13-brand">LNG_NI</b></button>')
     return clicked
 
 def step(num,title):
@@ -147,6 +143,12 @@ def step(num,title):
 
 # Full format rules live in the AgentStream system prompt; this line only reinforces them per question.
 ANSWER_FORMAT = '핵심은 맨 위에 표로 정리하고, 판정·점수·개수·사진 이름은 이 검사 정보의 값만 그대로 쓰세요.'
+VISUAL_LIMIT = ('사진 파일은 챗봇에 전달되지 않았습니다. 사진을 직접 보았다고 말하거나 색상·질감·균열 모양 등 시각적 근거를 만들어 말하지 마세요. '
+                '판정과 위치는 검사 모델이 반환한 정보라고 명시하고, 좌표로 설명할 때는 제공된 이미지 크기와 후보 번호만 사용하세요. '
+                '사각형은 모델 후보 영역이며 실제 결함의 정확한 경계가 아닙니다. 제공되지 않은 위치나 후보는 추측하지 마세요. '
+                '일반적인 관찰 기준은 사용자가 직접 확인할 사항으로 설명하고, 해당 사진에서 관찰한 사실처럼 말하지 마세요.')
+# The AgentStream stored prompt makes the bot greet as '선배'; the site's chatbot is named LNG_NI.
+BOT_NAME = "당신의 이름은 'LNG_NI'입니다. 자신을 '선배'라고 소개하거나 부르지 마세요. 인사가 필요하면 'LNG_NI 입니다'라고 소개하세요."
 
 
 def model_mark(view, case):
@@ -157,17 +159,32 @@ def model_mark(view, case):
 def chat_context(cfg, screen, **extra):
     """What the assistant chatbot is told about the learner's current screen (sent as <inspection_context>)."""
     return {'검사 종류': f"{cfg['number']}. {cfg['title']}", '모델': cfg['model'], '판정 클래스': cfg['classes'], '화면': screen, **extra,
-            '답변 형식': ANSWER_FORMAT}
+            '답변 형식': ANSWER_FORMAT, '사진 해석 제한': VISUAL_LIMIT, '챗봇 이름': BOT_NAME}
 
 
-def model_summary(mode, body):
+def model_summary(mode, body, image_size=None, threshold=None, classes=None, selected=None, limit=15):
+    """Text only; candidate numbers follow the same filtered API order as the overlay."""
     part = body[mode]
+    geometry = {'이미지 크기(px)': {'너비': image_size[0], '높이': image_size[1]} if image_size else '미제공'}
     if mode == 'classification':
-        return {'선택 클래스': part['class']['name'], '모델 점수': round(part['score'], 4),
+        return {**geometry, '결함 위치': '분류 모델은 위치 좌표와 후보 번호를 제공하지 않습니다.',
+                '선택 클래스': part['class']['name'], '모델 점수': round(part['score'], 4),
                 '클래스별 확률': {n: round(v, 4) for n, v in zip(MODES[mode]['classes'], part['probabilities'])}}
     items = part['detections' if mode == 'detection' else 'instances']
-    top = sorted(items, key=lambda x: -x['score'])[:15]
-    return {'전체 후보 수': len(items), '후보(점수순, 최대 15개)': [{'클래스': x['class']['name'], '점수': round(x['score'], 4)} for x in top]}
+    visible = [x for x in items if (threshold is None or x['score'] >= threshold)
+               and (not classes or x['class']['name'] in classes)]
+    numbered = list(enumerate(visible, 1))
+    # Include a selected segmentation candidate even when it is beyond the summary limit.
+    top = numbered[:limit]
+    if selected is not None and 0 <= selected < len(visible) and selected >= limit:
+        top[-1:] = [numbered[selected]]
+    return {**geometry, '전체 후보 수': len(items), '표시 후보 수': len(visible),
+            '좌표 기준': '방향 보정된 이미지의 왼쪽 위가 (0, 0), x는 오른쪽, y는 아래쪽, 단위 px; bbox=[x1,y1,x2,y2]',
+            '후보 번호 기준': '현재 표시 필터를 적용한 API 순서. 화면 오버레이 번호와 동일하며 필터가 바뀌면 번호도 바뀝니다.',
+            '전달 후보 수': len(top), '생략 후보 수': len(visible) - len(top),
+            '선택 후보 번호': selected + 1 if selected is not None and 0 <= selected < len(visible) else '없음',
+            '후보': [{'후보 번호': n, '클래스': x['class']['name'], '점수': round(x['score'], 4),
+                     'bbox': x['bbox_xyxy']} for n, x in top]}
 
 
 def render(mode):
@@ -175,13 +192,7 @@ def render(mode):
     cfg=MODES[mode]
     shell(mode=mode)
     cases=load_cases(mode)
-    task='review' if st.query_params.get('task')=='review' else 'judge'
-    fragment(workspace_header(mode,cfg,task))
-    if task=='review':
-        from review import render_review
-        ctx=render_review(mode,cfg) or {}
-        publish_chat_context(chat_context(cfg,'AI 판정 검토 · '+ctx.pop('단계','진행 중'),**ctx))
-        fragment('<div class="ws-foot">'+footer()+'</div>');return
+    fragment(workspace_header(mode,cfg))
     if cases:
         render_quiz(mode,cfg,cases)
         fragment('<div class="ws-foot">'+footer()+'</div>');return
@@ -212,7 +223,11 @@ def render(mode):
         render_result(mode,cfg,image,sig)
     if has_result:
         saved=st.session_state['inspection_result']
-        extra={'내 예상':saved['guess'],'모델 결과':model_summary(mode,saved['body']),'검사 시각':saved['time'],'정답 라벨':'없음 (직접 올린 사진이라 정답 라벨이 없습니다)'}
+        extra={'내 예상':saved['guess'],'모델 결과':model_summary(mode,saved['body'],image.size,
+               threshold=st.session_state.get('threshold_'+mode,0.5),
+               classes=st.session_state.get('classes_'+sig),
+               selected=st.session_state.get('mask_'+sig) if mode=='segmentation' else None),
+               '검사 시각':saved['time'],'정답 라벨':'없음 (직접 올린 사진이라 정답 라벨이 없습니다)'}
         if mode!='classification':extra['화면 표시 점수 필터']=st.session_state.get('threshold_'+mode,0.5)
         publish_chat_context(chat_context(cfg,'사진 업로드 검사 · 결과 확인',**extra))
     else:
@@ -382,19 +397,24 @@ def render_quiz(mode, cfg, cases):
                         st.checkbox(f"{names[c['id']]} 불량", key=f"{key}_pick_{c['id']}", disabled=False)
             picks = {c['id']: bool(st.session_state.get(f"{key}_pick_{c['id']}")) for c in cases}
             st.caption(f'불량으로 고른 사진 {sum(picks.values())}장 · 실행하면 사진 {len(cases)}장을 검사 API에 전송합니다.')
-            if run_row(f"{cfg['number']}번 검사 실행 · 내 선택 제출", False, key='run_quiz_' + mode):
+            if run_row('검사 실행', False, key='run_quiz_' + mode):
                 state['picks'] = picks
                 results, progress = {}, st.progress(0.0, text='검사 준비 중…')
                 for n, c in enumerate(order):
                     progress.progress(n / len(order), text=f"{n+1}/{len(order)} · {names[c['id']]} 검사 중…")
                     data = case_bytes(c['path'], Path(c['path']).stat().st_mtime)
                     try:
-                        _, mime = read_image(data, mode)
+                        inspected_image, mime = read_image(data, mode)
                         body = call_model(mode, data, mime)
-                        results[c['id']] = {'view': model_view(mode, body), 'body': body}
+                        results[c['id']] = {'view': model_view(mode, body), 'body': body, 'image_size': inspected_image.size}
                     except ValueError as e: results[c['id']] = {'error': str(e)}
                 state['results'] = results
                 state['time'] = datetime.now(ZoneInfo('Asia/Seoul')).strftime('%H:%M:%S')
+                try:  # logged-in learners: keep the score for 내 학습 현황 (photos are not stored)
+                    import accounts
+                    user = accounts.current_user()
+                    if user: accounts.add_practice(user['id'], mode, sum(picks[c['id']] == c['defect'] for c in order), len(order))
+                except Exception: pass
                 state['scroll'] = True  # bring STEP 2 into view after the rerun
                 st.rerun()
         publish_chat_context(chat_context(cfg, '직접 판단 실습 · 불량 사진 고르기 (제출 전)', **{
@@ -406,7 +426,7 @@ def render_quiz(mode, cfg, cases):
         judged = [c for c in order if 'view' in results[c['id']]]
         mine = sum(picks[c['id']] == c['defect'] for c in order)
         model_ok = sum(results[c['id']]['view']['defect'] == c['defect'] for c in judged)
-        fragment('<div class="step-row">' + step(2, '정답 · 내 선택 · 모델 판정 비교') + '<ul class="q-summary" aria-label="결과 요약">'
+        fragment('<div class="step-row">' + step(2, '판단 결과') + '<ul class="q-summary" aria-label="결과 요약">'
                  f'<li>실제 불량 <b>{defects}</b> / {len(cases)}장</li>'
                  f'<li>내 정답 <b>{mine}</b> / {len(cases)}</li>'
                  f'<li>모델 정답 <b>{model_ok if judged else "-"}</b> / {len(judged)}</li></ul></div>')
@@ -414,11 +434,12 @@ def render_quiz(mode, cfg, cases):
             r = results[c['id']]
             if 'error' in r: st.error(f"{names[c['id']]}: {r['error']}")
         with st.container(key='t13quizres'):  # 3 per line on PC, 1 on phones (CSS)
-            for col, c in zip(st.columns(len(order), gap='small'), order):
+            for n, (col, c) in enumerate(zip(st.columns(len(order), gap='small'), order)):
                 r, pick = results[c['id']], picks[c['id']]
-                with col, st.container(border=True):
+                me_ok = pick == c['defect']
+                # card background: light sky blue when my choice was right, light red when wrong (site.css t13qcok/t13qcng)
+                with col, st.container(border=True, key=f"t13qc{'ok' if me_ok else 'ng'}{n}"):
                     st.image(case_thumb(c['path'], Path(c['path']).stat().st_mtime, mode), width='stretch')
-                    me_ok = pick == c['defect']
                     lines = [f'<p class="q-title" title="{html.escape(c["cls"] + (" · " + c["place"] if c["place"] else ""))}">{names[c["id"]]}<span class="q-truth {"bad" if c["defect"] else "good"}">정답 {verdict(c["defect"])}</span></p>']
                     lines.append(f'<p class="q-line"><span>내 선택</span><b>{verdict(pick)}</b><i class="{"ok" if me_ok else "ng"}">{"맞음" if me_ok else "틀림"}</i></p>')
                     if 'view' in r:
@@ -446,7 +467,7 @@ def render_quiz(mode, cfg, cases):
             for c in cases: st.session_state.pop(f"{key}_pick_{c['id']}", None)
             st.session_state.pop(key, None); st.rerun()
         with chat:
-            fragment('<button type="button" class="run-chat-btn" data-chat aria-controls="chat-panel" aria-label="LNG_NI 챗봇 열기"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4H3v14h5l4 4v-4h9ZM7 9h10M7 13h6"/></svg>챗봇</button>')
+            fragment('<button type="button" class="run-chat-btn" data-chat aria-controls="chat-panel" aria-label="LNG_NI 챗봇 열기"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4H3v14h5l4 4v-4h9ZM7 9h10M7 13h6"/></svg><b class="t13-brand">LNG_NI</b></button>')
         marks = [(e['name'], e['ok'], model_mark(results[c['id']].get('view'), c)) for e, c in zip(entries, order)]
         listed = lambda keep: ', '.join(n for n, mine_ok, ai in marks if keep(mine_ok, ai)) or '없음'
         publish_chat_context(chat_context(cfg, '직접 판단 실습 · 결과 비교 (제출 후)', **{
@@ -454,6 +475,10 @@ def render_quiz(mode, cfg, cases):
                                     '내가 틀린 사진': listed(lambda m, a: not m), '모델이 맞힌 사진': listed(lambda m, a: a == '맞음'),
                                     '모델이 틀린 사진': listed(lambda m, a: a == '틀림'), '둘 다 틀린 사진': listed(lambda m, a: not m and a == '틀림')},
             '사진별 결과': [{'사진': e['name'], '정답': e['truth'], '촬영 위치': c['place'] or None, '내 선택': e['mine'], '내 선택 정오': '맞음' if e['ok'] else '틀림',
-                          '모델 판정': e['ai'], '모델 판정 정오': model_mark(results[c['id']].get('view'), c)} for e, c in zip(entries, order)]}))
+                          '모델 판정': e['ai'], '모델 판정 정오': model_mark(results[c['id']].get('view'), c),
+                          '모델 결과': model_summary(mode, e['body'],
+                              results[c['id']].get('image_size') or read_image(case_bytes(c['path'], Path(c['path']).stat().st_mtime), mode)[0].size,
+                              threshold=SHOW_SCORE, limit=3) if e['body'] else '검사 실패'} for e, c in zip(entries, order)],
+            '후보 번호 표시': '사진별 후보 번호는 오답 복습 창에서 해당 사진의 오버레이 번호에 대응합니다. 사진 이름도 함께 명시하세요.'}))
     if state.pop('scroll', False):
         render_html('<span hidden></span>', "setTimeout(()=>document.querySelector('[data-testid=stMain]')?.scrollTo({top:0}),150)")

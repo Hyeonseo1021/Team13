@@ -26,14 +26,14 @@ def render():
     cfg = MODES[key]
     tabs = ''.join(f'<a href="?page=classes&amp;type={k}"' + (' class="on" aria-current="page"' if k == key else '') +
                    f'><span class="cls-tab-no">{c["number"]}</span>{c["title"]}<small>{len(c["classes"])}개</small></a>' for k, c in MODES.items())
-    body = (f'<main id="workspace" tabindex="-1" class="classes-main"><div class="breadcrumb">학습 공간 <span aria-hidden="true">/</span> 판정 클래스 '
+    body = (f'<main id="workspace" tabindex="-1" class="classes-main"><div class="breadcrumb">학습 공간 <span aria-hidden="true">/</span> 학습 가이드 <span aria-hidden="true">/</span> 판정 클래스 '
             f'<span aria-hidden="true">/</span> {cfg["number"]}. {cfg["title"]}</div>'
             '<section class="workspace-title"><div class="title-main"><h1>판정 클래스</h1><p>검사별로 AI 모델이 구분하는 판정 종류입니다. 실습 전에 어떤 결함을 찾는지 확인하세요.</p></div></section>'
             f'<nav class="cls-tabs" aria-label="검사 종류">{tabs}</nav>'
             f'<section class="cls-panel" aria-labelledby="cls-title"><div class="cls-head"><div><h2 id="cls-title"><span class="workspace-number">{cfg["number"]}</span>{cfg["title"]}</h2>'
             f'<p class="cls-meta"><span class="cls-model">{cfg["model"]}</span>{html.escape(cfg["target"])} · {html.escape(cfg["explain"])}</p></div>'
             f'<div class="cls-actions"><a class="btn btn-primary" href="?inspection={key}">이 검사 실습하기</a>'
-            f'<a class="btn btn-line" href="?inspection={key}&amp;task=review">AI 판정 검토</a></div></div>'
+            f'<a class="btn btn-line" href="?page=judge&amp;inspection={key}">판정 검토</a></div></div>'
             f'<p class="cls-lesson">{icon("book")}<span><b>관찰 포인트</b> {html.escape(cfg["lesson"])}</span></p>'
             + class_cards(cfg['classes']) + '</section></main>')
-    shell(None, no_chat=True, current='classes', home=body)
+    shell(None, no_chat=True, current='guide', home=body)

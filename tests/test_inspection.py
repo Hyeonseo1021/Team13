@@ -77,6 +77,38 @@ class InspectionTests(unittest.TestCase):
   self.assertFalse(m.model_view('detection',det)['defect'])  # defect candidate below the 0.5 display threshold
   det['detection']['detections'][1]['score']=.6;self.assertTrue(m.model_view('detection',det)['defect'])
   self.assertTrue(m.is_defect_class('균열'));self.assertFalse(m.is_defect_class('용접양품'))
+ def test_chat_geometry_matches_filtered_overlay_order(self):
+  items=[{'class':{'name':name},'score':score,'bbox_xyxy':box} for name,score,box in
+         [('균열',.2,[1,1,2,2]),('균열',.7,[2,1,4,3]),('용접양품',.99,[0,0,6,5]),('균열',.9,[5,2,9,7])]]
+  summary=m.model_summary('detection',{'detection':{'detections':items}},(12,8),threshold=.5,classes=['균열'])
+  self.assertEqual(summary['이미지 크기(px)'],{'너비':12,'높이':8})
+  self.assertEqual(summary['전체 후보 수'],4);self.assertEqual(summary['표시 후보 수'],2)
+  self.assertEqual([(c['후보 번호'],c['bbox']) for c in summary['후보']],[(1,[2,1,4,3]),(2,[5,2,9,7])])
+  self.assertEqual(summary['후보'][0]['점수'],.7)  # keep overlay order, not score order
+  empty=m.model_summary('detection',{'detection':{'detections':items}},(12,8),threshold=1)
+  self.assertEqual(empty['후보'],[]);self.assertEqual(empty['선택 후보 번호'],'없음')
+ def test_chat_selected_candidate_survives_truncation_without_mask(self):
+  items=[{'class':{'name':'균열'},'score':.9,'bbox_xyxy':[i,0,i+1,1],
+          'mask_rle':{'size':[8,30],'counts':'private-mask'}} for i in range(20)]
+  summary=m.model_summary('segmentation',{'segmentation':{'instances':items}},(30,8),threshold=.5,selected=18)
+  self.assertEqual(summary['선택 후보 번호'],19);self.assertEqual(summary['후보'][-1]['후보 번호'],19)
+  self.assertEqual(summary['생략 후보 수'],5);self.assertEqual(len(summary['후보']),15)
+  self.assertNotIn('private-mask',json.dumps(summary))
+ def test_chat_classification_has_dimensions_but_no_invented_location(self):
+  body={'classification':{'class':{'name':'표면양품'},'score':.8,'probabilities':[.1,.8,.05,.05]}}
+  summary=m.model_summary('classification',body,(8,12))
+  self.assertEqual(summary['이미지 크기(px)']['높이'],12);self.assertNotIn('후보',summary)
+  ctx=m.chat_context(m.MODES['classification'],'결과',**{'모델 결과':summary})
+  self.assertIn('사진 파일은 챗봇에 전달되지 않았습니다',ctx['사진 해석 제한'])
+ def test_chat_quiz_geometry_fits_context_budget(self):
+  import chat_api
+  items=[{'class':{'name':'용접블로우홀'},'score':.9876,'bbox_xyxy':[100.123456,200.123456,300.123456,400.123456]} for _ in range(100)]
+  summary=m.model_summary('segmentation',{'segmentation':{'instances':items}},(4000,5000),threshold=.5,limit=3)
+  ctx=m.chat_context(m.MODES['segmentation'],'직접 판단 실습 · 결과 비교 (제출 후)',**{
+   '사진별 결과':[{'사진':f'사진 {i}','정답':'불량 · 용접블로우홀','모델 결과':summary} for i in range(4)]})
+  self.assertLess(len(json.dumps(ctx,ensure_ascii=False)),chat_api.MAX_CONTEXT)
+  message=chat_api.build_message('2번 후보는 어디인가요?',ctx)
+  self.assertIn('bbox:',message);self.assertIn('시각적 근거를 만들지 마세요',message)
  def test_review_correction_choices(self):
   import review as rv
   self.assertNotIn('폼스프레이양품',rv.correction_choices('classification',{'label':'폼스프레이양품','defect':False}))

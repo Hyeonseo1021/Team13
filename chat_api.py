@@ -24,6 +24,8 @@ from pathlib import Path
 import anyio
 import requests
 import urllib3
+import accounts
+import knowledge
 from starlette.requests import Request
 from starlette.responses import JSONResponse, StreamingResponse
 from starlette.routing import Route
@@ -394,6 +396,12 @@ class Store:
 STORE = Store()
 
 
+def chat_identity(request, vid):
+    user = accounts.user_for_token(request.cookies.get(accounts.COOKIE))
+    user_id = user['id'] if user else None
+    return user_id, f'{vid}:{knowledge.scope(user_id)}'
+
+
 # ------------------------------------------------------------------ request checks
 def same_origin(request):
     """Reject cross-site calls: the custom header forces a CORS preflight we never answer, and Origin must match."""
@@ -424,7 +432,12 @@ def format_context(value, indent=''):
             lines.extend(format_context(v, indent + '  '))
         elif isinstance(v, list) and v and all(isinstance(x, dict) for x in v):
             lines.append(f'{indent}{key}:')
-            lines.extend(f'{indent}  - ' + ' / '.join(f'{k}: {_scalar(x)}' for k, x in row.items()) for row in v)
+            for row in v:
+                if any(isinstance(x, dict) or (isinstance(x, list) and any(isinstance(y, dict) for y in x)) for x in row.values()):
+                    lines.append(f'{indent}  -')
+                    lines.extend(format_context(row, indent + '    '))
+                else:
+                    lines.append(f'{indent}  - ' + ' / '.join(f'{k}: {_scalar(x)}' for k, x in row.items()))
         elif isinstance(v, list):
             lines.append(f'{indent}{key}: ' + (', '.join(_scalar(x) for x in v) if v else '없음'))
         else:
@@ -436,7 +449,10 @@ def build_message(question, context):
     """Learner question, prefixed by the inspection context the stored prompt expects. No system/prompt fields."""
     if not context:
         return question
-    return '<inspection_context>\n' + '\n'.join(format_context(context)) + '\n</inspection_context>\n\n' + question
+    notice = ('사진 파일은 제공되지 않았습니다. 사진을 직접 보았다고 말하거나 색상·질감·균열 모양 등의 시각적 근거를 만들지 마세요. '
+              '판정·위치는 검사 모델이 반환한 정보로 설명하고, 제공되지 않은 위치·후보 번호는 추측하지 마세요. '
+              '일반적인 관찰 기준은 사용자가 확인할 사항으로만 설명하세요.')
+    return '<inspection_context>\n' + '\n'.join(format_context(context)) + '\n</inspection_context>\n\n' + notice + '\n\n' + question
 
 
 class BodyTooLarge(Exception):
@@ -486,25 +502,28 @@ async def chat(request: Request):
         return problem(422, '함께 보낼 검사 정보가 너무 큽니다. 새 대화로 다시 시도해 주세요.')
 
     vid, new_visitor = visitor_of(request)
+    user_id, owner = await anyio.to_thread.run_sync(chat_identity, request, vid)
     cid = data.get('conversation_id')
     if cid:
-        conv = None if new_visitor else STORE.get(vid, cid)
+        conv = None if new_visitor else STORE.get(owner, cid)
         if conv is None:  # unknown, expired, or someone else's conversation: never reveal which
             resp = problem(404, '이전 대화를 찾을 수 없습니다. 새 대화로 시작합니다. 질문을 다시 보내 주세요.', reset=True)
             if new_visitor:
                 set_visitor(resp, request, vid)
             return resp
     else:
-        cid, conv = STORE.create(vid)
+        cid, conv = STORE.create(owner)
     if conv.lock.locked():
         return problem(409, '이전 질문의 답변이 아직 생성 중입니다. 끝난 뒤 다시 보내 주세요.')
 
+    context, review_cases = await anyio.to_thread.run_sync(knowledge.enrich, user_id, question, context)
     message = build_message(question, context)
 
     async def events():
         # The lock is taken inside the generator so it is always released by `finally` (a generator that never
         # starts because the browser left early never holds it).
         yield line({'t': 'meta', 'conversation_id': cid})
+        yield line({'t': 'review_cases', 'cases': review_cases})
         if not conv.lock.acquire(blocking=False):
             yield line({'t': 'error', 'code': 'busy', 'message': '이전 질문의 답변이 아직 생성 중입니다. 끝난 뒤 다시 보내 주세요.'})
             return
@@ -552,7 +571,7 @@ async def chat(request: Request):
         except UpstreamError as e:
             outcome = f'{e.stage}:{e.status}'
             if e.reset:
-                STORE.drop(vid, cid)
+                STORE.drop(owner, cid)
             log.info('stage=%s status=%s code=%s trace_id=%s', e.stage, e.status, e.code, e.trace_id)
             yield line({'t': 'error', 'code': e.code, 'message': e.message, 'reset': e.reset, 'retry_after': e.retry_after})
         except BadStream as e:
@@ -599,8 +618,9 @@ async def reset(request: Request):
     except (BodyTooLarge, ValueError):
         data = {}
     vid, new_visitor = visitor_of(request)
+    _, owner = await anyio.to_thread.run_sync(chat_identity, request, vid)
     if not new_visitor and isinstance(data.get('conversation_id'), str):
-        STORE.drop(vid, data['conversation_id'])
+        STORE.drop(owner, data['conversation_id'])
     return JSONResponse({'ok': True})
 
 

@@ -51,12 +51,15 @@ if(!window.T13_DELEGATED){window.T13_DELEGATED=true;document.addEventListener('c
 // The API key never reaches the browser. State lives on window so a Streamlit re-render, which re-mounts this
 // panel, keeps an answer that is still streaming.
 const panel=$('#chat-panel'),launcher=$('#chat-launcher'),input=$('#chat-input'),log=$('#chat-log'),sendBtn=$('#chat-send');
-const STORE_KEY='team13.learning-chat.v2',API=T13_CONTEXT.chatApi||'api/t13';
+const STORE_KEY='team13.learning-chat.v3.'+T13_CONTEXT.chatScope,API=T13_CONTEXT.chatApi||'api/t13';
+try{const previous=sessionStorage.getItem('team13.learning-chat.active');if(previous&&previous!==STORE_KEY)sessionStorage.removeItem(previous);
+sessionStorage.removeItem('team13.learning-chat.v2');sessionStorage.setItem('team13.learning-chat.active',STORE_KEY)}catch{}
+if(window.T13_CHAT&&window.T13_CHAT.scope!==T13_CONTEXT.chatScope){window.T13_CHAT.busy?.ctrl.abort();window.T13_CHAT=null}
 const PLOTLY_SRC='https://cdnjs.cloudflare.com/ajax/libs/plotly.js/3.0.1/plotly.min.js';
 const GREETING='**안녕하세요! LNG_NI 입니다.**\n\n검사 결과를 보며 궁금한 점, 판정 기준, 관찰 포인트를 물어보세요. 답변은 AI가 생성하며, 지금 화면의 검사 정보(검사 종류·내 예상·모델 결과, 공개된 정답)를 함께 참고합니다.';
 const ICON_SEND='<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V4m-7 7 7-7 7 7"/></svg>',ICON_STOP='<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>';
 class ChatError extends Error{}
-const S=window.T13_CHAT||(window.T13_CHAT={messages:null,conv:null,busy:null,open:false,view:null});
+const S=window.T13_CHAT||(window.T13_CHAT={scope:T13_CONTEXT.chatScope,messages:null,conv:null,busy:null,open:false,view:null});
 if(!S.messages){S.messages=[];
   try{const saved=JSON.parse(sessionStorage.getItem(STORE_KEY)||'{}');
     if(Array.isArray(saved.messages))S.messages=saved.messages.filter(m=>m&&['user','assistant'].includes(m.role)&&typeof m.text==='string').slice(-40);
@@ -141,6 +144,10 @@ function renderMessage(m){
       const plot=el('div','chat-plot');plot.setAttribute('role','img');plot.setAttribute('aria-label',f.title||`차트 ${i+1}`);fig.append(plot);box.append(fig);drawChart(plot,f)});item.append(box)}
     chartNotes(m).forEach(t=>item.append(el('p','chat-note',t)));
     if(m.sources)item.append(sourcesNode(m.sources));
+    if(m.reviewCases?.length){const box=el('details','chat-sources');box.append(el('summary','',`답변에 제공한 검증 사례 ${m.reviewCases.length}건`));
+      m.reviewCases.forEach(c=>{const row=el('div','chat-note');row.append(el('p','',`[검토 사례 ${c['근거 ID']}] · 검증 ${c['검증일']}`));
+        row.append(el('p','',`검증 판정: ${c['검증 판정']}`));row.append(el('p','',`검토 사유: ${c['검토 사유']}`));
+        row.append(el('p','',`검사 기준: ${c['검사 기준']}`));row.append(el('p','',`검증 의견: ${c['검증 의견']}`));box.append(row)});item.append(box)}
     item.append(statusNode(m))}
   return item}
 const view=()=>S.view||{refresh(){},setBusy(){},paintAll(){}};
@@ -159,6 +166,7 @@ function handle(m,ev){
     case 'status':m.phase=String(ev.phase||'');view().refresh(m);return;
     case 'delta':m.text+=typeof ev.text==='string'?ev.text:'';view().refresh(m);return;
     case 'sources':m.sources={documents:Array.isArray(ev.documents)?ev.documents:[],queries:ev.queries||[]};break;
+    case 'review_cases':m.reviewCases=Array.isArray(ev.cases)?ev.cases:[];break;
     case 'chart':{(m.charts||(m.charts=[])).push(...(Array.isArray(ev.figures)?ev.figures:[]));const mf=ev.manifest||{},cur=m.manifest||(m.manifest={});
       ['generated_count','failed_count','deferred_count'].forEach(k=>{if(Number.isInteger(mf[k]))cur[k]=(cur[k]||0)+mf[k]});m.chartInvalid=(m.chartInvalid||0)+(ev.invalid||0);break}
     case 'tool_failed':(m.toolFailed||(m.toolFailed=[])).push(ev.name||'도구');break;
@@ -169,7 +177,7 @@ function handle(m,ev){
 async function send(text){
   text=text.trim();if(!text||S.busy)return;
   const context=window.T13_INSPECTION_CONTEXT??null;
-  const m={role:'assistant',kind:'ai',text:'',state:'streaming',phase:'연결 중'};
+  const m={role:'assistant',kind:'ai',text:'',state:'streaming',phase:'답변 중'};
   add({role:'user',text});add(m);input.value='';
   const ctrl=new AbortController();S.busy={ctrl,m};view().setBusy(true);
   const timer=setTimeout(()=>ctrl.abort('timeout'),330000);
@@ -197,7 +205,7 @@ function reset(){if(S.busy)S.busy.ctrl.abort();const old=S.conv;S.conv=null;
 // Inspection pages open the assistant only from the button beside “검사 실행”; no floating launcher there.
 function openChat(open,focus=true){S.open=open;panel.hidden=!open;document.body.classList.toggle('t13-chat-open',open);launcher.hidden=open||!!T13_CONTEXT.mode||!!T13_CONTEXT.noChat;launcher.setAttribute('aria-expanded',String(open));persist();if(focus)(open?input:(T13_CONTEXT.mode?document.querySelector('.run-chat-btn'):launcher))?.focus();log.scrollTop=log.scrollHeight}
 if(!S.messages.length)S.messages=[{role:'assistant',kind:'static',text:GREETING}];
-paintAll();setBusy(!!S.busy);if(T13_CONTEXT.noChat){panel.hidden=true;launcher.hidden=true;document.body.classList.remove('t13-chat-open')}else openChat(S.open,false);
+paintAll();setBusy(!!S.busy);if(T13_CONTEXT.noChat){S.open=false;persist();panel.hidden=true;launcher.hidden=true;document.body.classList.remove('t13-chat-open')}else openChat(S.open,false);
 if(T13_CONTEXT.mode)$('#chat-context-label').textContent='현재 실습 · '+modes[T13_CONTEXT.mode];
 launcher.onclick=()=>openChat(true);$('#chat-close').onclick=()=>openChat(false);$('#chat-reset').onclick=()=>{reset();input.focus()};panel.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();openChat(false)}});
 input.addEventListener('input',()=>{if(!S.busy)sendBtn.disabled=!input.value.trim()});input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229){e.preventDefault();if(!S.busy)send(input.value)}});$('#chat-form').onsubmit=e=>{e.preventDefault();if(S.busy)S.busy.ctrl.abort();else send(input.value)};root.querySelectorAll('[data-prompt]').forEach(b=>b.onclick=()=>send(b.dataset.prompt));
@@ -246,4 +254,23 @@ if(slider){const slides=[...slider.querySelectorAll('.slide')],track=slider.quer
   function go(n){cur=(n+slides.length)%slides.length;slides.forEach((s,k)=>{s.hidden=k!==cur});slider.querySelector('.slide-current').textContent=cur+1}
   slider.querySelector('.slide-prev').onclick=()=>go(cur-1);slider.querySelector('.slide-next').onclick=()=>go(cur+1);
   go(0)}
+// ---- 직접 판단 실습: click (or Enter/Space on) a photo to see it large. Listeners attach once per page load.
+if(!window.T13_LIGHTBOX){window.T13_LIGHTBOX=true;
+  const SEL='[class*="st-key-t13quizgrid"] [data-testid="stImage"] img,[class*="st-key-t13examgrid"] [data-testid="stImage"] img,[class*="st-key-t13qc"] [data-testid="stImage"] img';
+  const lb=document.createElement('dialog');lb.className='t13-lightbox';lb.setAttribute('aria-labelledby','t13-lb-title');
+  lb.innerHTML='<div class="t13-lb-top"><h2 id="t13-lb-title"></h2><button type="button" class="t13-lb-close" aria-label="크게 보기 닫기">×</button></div><img alt="">';
+  document.body.append(lb);
+  const lbImg=lb.querySelector('img'),lbTitle=lb.querySelector('h2');let back=null;
+  const nameOf=img=>{const col=img.closest('[data-testid="stColumn"]');const t=col&&(col.querySelector('[data-testid="stCheckbox"] p')||col.querySelector('.q-title'));
+    return t?t.childNodes[0].textContent.replace(/\s*불량$/,'').trim():'사진'};
+  const open=img=>{back=img;lbTitle.textContent=nameOf(img)+' 크게 보기';lbImg.src=img.src;lbImg.alt=nameOf(img);lb.showModal()};
+  const close=()=>{lb.close()};
+  lb.addEventListener('close',()=>{lbImg.removeAttribute('src');if(back&&back.isConnected)back.focus();back=null});
+  lb.querySelector('.t13-lb-close').onclick=close;lbImg.onclick=close;
+  lb.addEventListener('click',e=>{if(e.target===lb)close()});  // click outside the photo closes
+  document.addEventListener('click',e=>{const img=e.target.closest&&e.target.closest(SEL);if(img){e.preventDefault();open(img)}},true);
+  document.addEventListener('keydown',e=>{const img=e.target.matches&&e.target.matches(SEL)?e.target:null;if(img&&(e.key==='Enter'||e.key===' ')){e.preventDefault();open(img)}});
+  // Make the photos reachable and announced as buttons (Streamlit re-renders them, so keep labelling new ones).
+  const label=()=>document.querySelectorAll(SEL).forEach(img=>{if(!img.dataset.t13lb){img.dataset.t13lb='1';img.tabIndex=0;img.setAttribute('role','button')}const a=nameOf(img)+' 크게 보기';if(img.getAttribute('aria-label')!==a)img.setAttribute('aria-label',a)});
+  new MutationObserver(label).observe(document.body,{childList:true,subtree:true});label()}
 })();

@@ -24,6 +24,14 @@ def icon(name='chat'):
     return '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">'+ICONS[name]+'</svg>'
 
 SITE_TITLE='LNG 탱크 품질 검사 교육 플랫폼'
+# Site-title emblem: the team's '1B' logo, recoloured light (assets/brand/team-logo-light.png, transparent; background cut at
+# brightness 250 so the silver highlights stay solid) on the
+# blue gradient tile (.st-emblem in site.css); inlined so it needs no static route.
+def _emblem():
+    import base64
+    data=base64.b64encode((ROOT/'assets/brand/team-logo-light.png').read_bytes()).decode('ascii')
+    return f'<span class="st-emblem" aria-hidden="true"><img src="data:image/png;base64,{data}" alt="" width="360" height="216"></span>'
+EMBLEM=_emblem()
 MODE_NAV=[('classification','1','표면 상태 분류'),('detection','2','볼트·케이블 탐지'),('segmentation','3','결함 영역 분할')]
 
 # (id, title, description, items). item = (label, sub, kind, value): kind 'href' or an action name handled in site.js.
@@ -33,20 +41,25 @@ MENU=[
    ('2. 볼트·케이블 탐지','EfficientDet · 체결·설치 상태','href','?inspection=detection'),
    ('3. 결함 영역 분할','MaskDINO · 용접·표면 결함','href','?inspection=segmentation'),
    ('검사 종류 한눈에 보기','홈 화면으로 이동','href','?')]),
+ ('exam','역량평가','실습이 아닌 평가로 혼자 힘으로 판정 능력을 확인합니다.',[
+   ('수행능력 평가','검사 3종 · 15문항 · 80점 합격','href','?page=exam'),
+   ('내 시험 기록','점수·합격 여부 다시 보기','href','?page=my&view=exams')]),
+ ('judge','판정 검토','역량평가에 합격한 검사자가 AI 판정을 승인·거절하며 기록합니다.',[
+   ('1. 표면 상태 분류 검토','AI 판정 승인·거절','href','?page=judge&inspection=classification'),
+   ('2. 볼트·케이블 탐지 검토','AI 판정 승인·거절','href','?page=judge&inspection=detection'),
+   ('3. 결함 영역 분할 검토','AI 판정 승인·거절','href','?page=judge&inspection=segmentation'),
+   ('내 검토 기록','기록·사진 다시 보기, 시험 문제 신청','href','?page=my&view=records')]),
  ('guide','학습 가이드','처음 실습하는 신입직원을 위한 단계별 안내입니다.',[
    ('실습 이용 가이드','검사 선택부터 기록 확인까지','href','?page=guide'),
+   ('판정 클래스','검사 3종 · 탭으로 골라 보기','href','?page=classes'),
    ('사진 준비 방법','형식·크기·촬영 대상 확인','href','?page=guide&topic=photo'),
    ('결과 해석 방법','점수·사각형·마스크 읽는 법','href','?page=guide&topic=result'),
    ('LNG_NI 챗봇','궁금한 점 바로 묻기','chat','')]),
- ('classes','판정 클래스','검사별로 모델이 구분하는 판정 종류를 확인합니다.',[
-   ('표면 상태 분류 클래스','4개 클래스','href','?page=classes&type=classification'),
-   ('볼트·케이블 탐지 클래스','4개 클래스','href','?page=classes&type=detection'),
-   ('결함 영역 분할 클래스','15개 클래스','href','?page=classes&type=segmentation')]),
  ('my','마이페이지','내 학습 현황과 검토 기록을 한곳에서 확인합니다.',[
    ('내 학습 현황','검토 건수·승인/거절 비율','href','?page=my'),
    ('내 검토 기록','기록·사진 다시 보기, CSV 내려받기','href','?page=my&view=records'),
    ('로그인 / 회원가입','검토 기록 저장','href','?page=login'),
-   ('개인정보 및 데이터 안내','사진·대화 처리 방식','privacy','')])]
+   ('개인정보 및 데이터 안내','사진·대화 처리 방식','href','?page=privacy')])]
 
 def brand(text):
     """Show the chatbot name LNG_NI in italics wherever it appears in visible HTML."""
@@ -64,7 +77,7 @@ def menu(no_chat=False):
 def gnb(active=None,no_chat=False):
     items=''
     for mid,title,desc,links in menu(no_chat):
-        cur=' is-current' if ((mid=='inspect' and active and active not in ('my','classes','guide')) or (mid==active)) else ''
+        cur=' is-current' if ((mid=='inspect' and active and active not in ('my','classes','guide','exam','judge')) or (mid==active)) else ''
         items+=(f'<li class="gnb-item{cur}"><button type="button" class="gnb-btn" id="gnb-{mid}" aria-expanded="false" aria-controls="mega-{mid}">{title}'+icon('chev')+'</button>'
                 f'<div class="mega" id="mega-{mid}" role="region" aria-labelledby="gnb-{mid}"><div class="mega-inner">'
                 '<ul class="mega-links">'+''.join('<li>'+menu_link(*l,cls='mega-link')+'</li>' for l in links)+'</ul></div></div></li>')
@@ -79,7 +92,7 @@ def wordmark(cls):
     """'BEST TEAM' wordmark image (assets/brand/best-team.webp, transparent; inlined so it needs no static route)."""
     import base64
     data=base64.b64encode((ROOT/'assets/brand/best-team.webp').read_bytes()).decode('ascii')
-    return f'<img class="{cls}" src="data:image/webp;base64,{data}" alt="BEST TEAM" width="587" height="80">'
+    return f'<img class="{cls}" src="data:image/webp;base64,{data}" alt="BEST TEAM" width="1237" height="160">'
 
 def logo_mark():
     """Site logo: the team13 '13' mark in a white circle (assets/brand/icon-96.png, inlined so it needs no static route)."""
@@ -103,7 +116,7 @@ def header(mode=None,home=False,no_chat=None,current=None):
     On phones (no menu bar) the search sits under the title: open on home, behind the search icon elsewhere."""
     no_chat=home if no_chat is None else no_chat
     return ('<a class="skip" href="#workspace">본문 바로가기</a><header class="site-header'+(' is-home' if home else '')+'">'
-      '<div class="hd-top"><p class="site-title"><a href="?" aria-label="'+SITE_TITLE+' 홈으로 이동">LNG 탱크 품질 검사 <span class="nowrap">교육 플랫폼</span></a></p>'
+      '<div class="hd-top"><p class="site-title"><a href="?" aria-label="'+SITE_TITLE+' 홈으로 이동">'+EMBLEM+'<span class="st-text"><span class="st-main"><b class="st-lng">LNG</b> 탱크 품질 검사</span> <span class="st-sub nowrap">교육 플랫폼</span></span></a></p>'
       '<div class="hd-util"><button type="button" class="search-toggle" aria-expanded="false" aria-controls="t13-search" aria-label="통합검색 열기">'+icon('search')+'</button>'+account_html()+
       '<button type="button" class="allmenu-btn" data-allmenu aria-haspopup="dialog" aria-controls="t13-allmenu">'+icon('menu')+'<span>전체메뉴</span></button></div></div>'
       +'<div class="hd-nav">'+gnb(current or mode,no_chat=no_chat)+'<div class="hd-search-row">'
@@ -132,7 +145,7 @@ def chat_markup(no_chat=False):
     return '''<div class="t13 t13-chat-root'''+(' no-chat' if no_chat else '')+'''" id="t13-chat-root"><button class="chat-launcher" id="chat-launcher" aria-controls="chat-panel" aria-expanded="false" aria-label="LNG_NI 대화창 열기">'''+icon()+'''<span class="chat-launcher-label"><i class="t13-brand">LNG_NI</i></span></button><aside class="chat-panel" id="chat-panel" role="dialog" aria-modal="false" aria-labelledby="chat-title" hidden><div class="chat-head"><span class="chat-avatar">'''+icon()+'''</span><div><h2 id="chat-title"><i class="t13-brand">LNG_NI</i></h2><p id="chat-context-label">검사 선택부터 결과 이해까지</p></div><div class="chat-actions"><button id="chat-reset" aria-label="새 대화 시작">↻</button><button id="chat-close" aria-label="대화창 닫기">×</button></div></div><p class="chat-disclaimer">AI 답변은 틀릴 수 있습니다 · 실제 판정은 검사 기준과 담당자 검토가 필요합니다</p><div class="chat-log" id="chat-log" role="log" aria-live="polite" aria-relevant="additions" aria-label="대화 내역" tabindex="0"></div><div class="chat-bottom"><div class="chat-prompts"><button data-prompt="검사 종류를 알려주세요">검사 선택</button><button data-prompt="사진을 어떻게 준비하나요?">사진 준비</button><button data-prompt="검사 결과를 어떻게 이해하나요?">결과 이해</button></div><form class="chat-compose" id="chat-form"><label class="sr-only" for="chat-input">질문 입력</label><textarea id="chat-input" rows="2" maxlength="1000" placeholder="궁금한 내용을 물어보세요"></textarea><button id="chat-send" type="submit" aria-label="메시지 보내기" disabled>'''+icon('arrow')+'''</button></form></div></aside><dialog id="site-dialog" aria-labelledby="site-dialog-title"><div class="dialog-top"><h2 id="site-dialog-title"></h2><button id="dialog-close" aria-label="닫기">×</button></div><div class="dialog-copy" id="site-dialog-copy"></div></dialog></div>'''
 
 def footer():
-    return '<footer class="footer"><strong>'+wordmark('footer-logo')+'</strong><p>© 2026 team13 · LNG 탱크 품질검사 신입교육</p><div class="footer-links"><button type="button" data-privacy="">개인정보 및 데이터 안내</button><button type="button" data-company="">기업교육 문의</button><a href="?page=guide">이용 가이드</a></div></footer>'
+    return '<footer class="footer"><strong>'+wordmark('footer-logo')+'</strong><p>© 2026 team13 · LNG 탱크 품질검사 신입교육</p><div class="footer-links"><a href="?page=privacy">개인정보 및 데이터 안내</a><button type="button" data-company="">기업교육 문의</button><a href="?page=guide">이용 가이드</a></div></footer>'
 
 def styles():
     return '<style>'+(ROOT/'assets/site.css').read_text()+'</style>'
@@ -147,7 +160,11 @@ def shell(mode=None,home=None,is_home=False,no_chat=None,current=None):
     content+='</div>'+chat_markup(no_chat=no_chat)
     base=st.config.get_option('server.baseUrlPath').strip('/')
     chat_api=('/'+base if base else '')+'/api/t13'
-    script='(()=>{const T13_CONTEXT='+json.dumps({'mode':mode,'noChat':no_chat,'search':search_index(no_chat=no_chat),'classes':class_lists(),'chatApi':chat_api},ensure_ascii=True)+';\n'+(ROOT/'assets/site.js').read_text()+'})();'
+    import accounts
+    import knowledge
+    user = accounts.current_user()
+    chat_scope = knowledge.scope(user['id'] if user else None)
+    script='(()=>{const T13_CONTEXT='+json.dumps({'mode':mode,'noChat':no_chat,'search':search_index(no_chat=no_chat),'classes':class_lists(),'chatApi':chat_api,'chatScope':chat_scope},ensure_ascii=True)+';\n'+(ROOT/'assets/site.js').read_text()+'})();'
     render_html(content,script)
     if mode is None:publish_chat_context(None)
 

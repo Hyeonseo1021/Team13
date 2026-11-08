@@ -5,6 +5,10 @@
 # python
 __pycache__/
 *.pyc
+.venv/
+venv/
+*.log
+.dev-server.lock
 
 # old backups
 app.before*.py
